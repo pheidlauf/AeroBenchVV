@@ -10,8 +10,14 @@
 %
 % See also: RUNF16SIM, GETDEFAULTSETTINGS, MAKEANIMATION, MAKEPICTURE,
 
-%% Set Initial Conditions
+%% Add all needed paths (if not manually added)
 close all; clear; clc;
+% cd('../')
+% addpath(genpath('F16_Model'));
+% addpath(genpath('F16_Sim'));
+% cd('F16_Sim')
+
+%% Set Initial Conditions
 powg = 9;                   % Power
 
 % Default alpha & beta

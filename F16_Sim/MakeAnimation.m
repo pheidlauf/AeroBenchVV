@@ -12,7 +12,7 @@
 %% Create animation of F16 Maneuver
 cd('../flypath3d');
 package_setup;
-cd('../F16_GCAS_V2');
+cd('../F16_Sim');
 close all; clear; clc;
 load('SimResults');
 
