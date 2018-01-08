@@ -1,0 +1,993 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>getAutopilotCommands</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-21"><meta name="DC.source" content="getAutopilotCommands.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Initialize Flags, Controls, Vectors</a></li><li><a href="#4">Implementation of a Simple Ground Collision Avoidance System</a></li><li><a href="#5">Implementation of a large-scale yaw to heading maneuver</a></li><li><a href="#6">Time-Based Commands</a></li><li><a href="#7">Basic "Smart" Controls</a></li><li><a href="#8">Emforce G-limits and set maneuver states as needed.</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [u_ref,t_maneuver] = getAutopilotCommands(t, x_f16, xequil,<span class="keyword">...</span>
+    uequil, flightLimits, ctrlLimits, autopilot, resetTrue)
+</pre><pre class="codeinput"><span class="comment">% Given the time, f16 state, and trim condition, returns desired Nz, ps,</span>
+<span class="comment">% Ny+r, and throttle settings.</span>
+<span class="comment">%</span>
+<span class="comment">%   Function Call:</span>
+<span class="comment">%       [u_ref] = getAutopilotCommands(t, x_f16, xequil, uequil, ...</span>
+<span class="comment">%           flightLimits, ctrlLimits, autopilot, resetTrue)</span>
+<span class="comment">%</span>
+<span class="comment">%   Inputs:</span>
+<span class="comment">%       t       - time of step (sec)</span>
+<span class="comment">%       x_f16   - State vector (f16 state) (16x1)</span>
+<span class="comment">%       xequil  - trim conditions (13x1)</span>
+<span class="comment">%       uequil  - equilibrium control (4x1)</span>
+<span class="comment">%       flightLimits - struct of flight limits</span>
+<span class="comment">%       ctrlLimits - struct of control limits</span>
+<span class="comment">%       autopilot - struct of autopilot settings:</span>
+<span class="comment">%           simpleGCAS              - "Roll &amp; Pull" to level flight</span>
+<span class="comment">%           basicSpeedControl       - Proportional control on airspeed</span>
+<span class="comment">%           steadyLevelFlightHold   - PD control on pitch &amp; roll</span>
+<span class="comment">%           levelTurnControl        - Pulls g's to stay level when banked</span>
+<span class="comment">%           turnToHeading          - Bank, G, unbank to heading</span>
+<span class="comment">%           timeTriggeredControl    - Program your own maneuvers f(t)</span>
+<span class="comment">%       resetTrue  - OPTIONAL: If 1, reset persistent variables</span>
+<span class="comment">%</span>
+<span class="comment">%   Outputs:</span>
+<span class="comment">%       u_ref(1)    = Down force, Nz_ref                    (g's)</span>
+<span class="comment">%       u_ref(2)    = Stability roll rate, ps_ref           (rad/sec)</span>
+<span class="comment">%       u_ref(3)    = Side force, Ny_r_ref                  (g's)</span>
+<span class="comment">%       u_ref(4)    = Throttle Setting                      (ft/sec)</span>
+<span class="comment">%       t_maneuver(1) =     Maneuver start time             (sec)</span>
+<span class="comment">%       t_maneuver(2) =     Maneuver end time               (sec)</span>
+<span class="comment">%       t_maneuver(3:n) =   Checkpoint time                 (sec)</span>
+<span class="comment">%</span>
+<span class="comment">%   x_f16 States:</span>
+<span class="comment">%       x_f16(1)  = air speed, VT                            (ft/s)</span>
+<span class="comment">%       x_f16(2)  = angle of attack, alpha                   (rad)</span>
+<span class="comment">%       x_f16(3)  = angle of sideslip, beta                  (rad)</span>
+<span class="comment">%       x_f16(4)  = roll angle, phi                          (rad)</span>
+<span class="comment">%       x_f16(5)  = pitch angle, theta                       (rad)</span>
+<span class="comment">%       x_f16(6)  = yaw angle, psi                           (rad)</span>
+<span class="comment">%       x_f16(7)  = roll rate, P                             (rad/s)</span>
+<span class="comment">%       x_f16(8)  = pitch rate, Q                            (rad/s)</span>
+<span class="comment">%       x_f16(9)  = yaw rate, R                              (rad/s)</span>
+<span class="comment">%       x_f16(10) = northward horizontal displacement, pn    (ft)</span>
+<span class="comment">%       x_f16(11) = eastward horizontal displacement, pe     (ft)</span>
+<span class="comment">%       x_f16(12) = altitude, h                              (ft)</span>
+<span class="comment">%       x_f16(13) = engine thrust dynamics lag state, pow    (lbs)</span>
+<span class="comment">%       ----------------------------------------------------------</span>
+<span class="comment">%       x_f16(14) = Integral of Nz error, Nz_e_i             (g's)</span>
+<span class="comment">%       x_f16(15) = Integral of Ps_error, Ps_e_i             (rad/sec)</span>
+<span class="comment">%       x_f16(16) = Integral of Ny_error, Ny_e_i             (g's)</span>
+<span class="comment">%</span>
+<span class="comment">%   Notes:</span>
+<span class="comment">%       This function is where you program the autopilot. Commanded</span>
+<span class="comment">%       Nz, ps, Ny+r, and throttle settings can be hard coded, time</span>
+<span class="comment">%       triggered, or state triggered.</span>
+<span class="comment">%</span>
+<span class="comment">%       Persistent variables are used to track any states that are not</span>
+<span class="comment">%       included in the F-16 state vector. These are needed for</span>
+<span class="comment">%       integration, tracking time flags, maneuver states, etc. If you</span>
+<span class="comment">%       modify this function to add your own, make sure to declare the</span>
+<span class="comment">%       persistent variables and included them in the "reset" block.</span>
+<span class="comment">%</span>
+<span class="comment">% &lt;a href="https://github.com/pheidlauf/AeroBenchVV"&gt;AeroBenchVV&lt;/a&gt;</span>
+<span class="comment">% Copyright: GNU General Public License 2017</span>
+<span class="comment">%</span>
+<span class="comment">% See also: GETDEFAULTSETTINGS, CONTROLLEDF16, PERSISTENT</span>
+</pre><h2>Initialize Flags, Controls, Vectors<a name="3"></a></h2><p>Run top level function if called without arguments</p><pre class="codeinput"><span class="keyword">if</span>(nargin==0)
+    Main;
+    <span class="keyword">return</span>;
+<span class="keyword">end</span>
+
+<span class="comment">% If "resetTrue" not designated, set to false</span>
+<span class="keyword">if</span>(nargin &lt; 8)
+    resetTrue = 0;
+<span class="keyword">end</span>
+
+<span class="comment">% Declare persistent flags and variables</span>
+<span class="keyword">persistent</span> man_start man_complete man_check_1 man_check_2;
+<span class="keyword">persistent</span> turnDirection;
+
+<span class="comment">% Reset persistent flags if (re)starting simulation</span>
+<span class="keyword">if</span>(isempty(man_start) || t &lt;= 0 || resetTrue)
+    <span class="comment">% Reset maneuver time flags if first func call or needed.</span>
+    man_start = -1;
+    man_check_1 = -1;
+    man_check_2 = -1;
+    man_complete = -1;
+    turnDirection = 0;
+<span class="keyword">end</span>
+
+<span class="comment">% Zero default commands</span>
+Nz = 0;
+ps = 0;
+Ny_r = 0;
+throttle = 0;
+
+<span class="comment">% Initialize t_maneuver vector to zeros</span>
+t_maneuver = zeros(1,2);
+</pre><pre class="codeoutput">
+flightLimits = 
+
+      altitudeMin: 0
+      altitudeMax: 10000
+     maneuverTime: 15
+            NzMax: 9
+            NzMin: -2
+    psMaxAccelDeg: 500
+             vMin: 300
+             vMax: 900
+      alphaMinDeg: -10
+      alphaMaxDeg: 45
+       betaMaxDeg: 30
+
+
+ctrlLimits = 
+
+       ThrottleMax: 1
+       ThrottleMin: 0
+    ElevatorMaxDeg: 25
+    ElevatorMinDeg: -25
+     AileronMaxDeg: 21.500000000000000
+     AileronMinDeg: -21.500000000000000
+      RudderMaxDeg: 30
+      RudderMinDeg: -30
+        MaxBankDeg: 60
+             NzMax: 6
+             NzMin: -1
+
+
+autopilot = 
+
+                    title: 'Default Simulation'
+        basicSpeedControl: 1
+    steadyLevelFlightHold: 0
+         levelTurnControl: 0
+               simpleGCAS: 0
+            turnToHeading: 0
+     timeTriggeredControl: 0
+
+------------------------------------------------------------
+F-16 Decoupled LQR Controller for Nz, P_s, and Ny+r tracking
+------------------------------------------------------------
+ 
+Operator Inputs = 
+                        Vt            h        gamma       psidot     thetadot
+                 540.00000   3500.00000            0            0            0
+ 
+Trim Orientation Selected:   Steady Pull Up
+ 
+Inititial Conditions = 
+                        Vt        alpha         beta          phi        theta
+                 540.00000      0.03703            0      0.78540     -1.25664
+ 
+                       psi            p            q            r           pn
+                  -0.78540            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   3500.00000      9.00000
+ 
+ 
+Control Guess = 
+                  throttle     elevator      aileron       rudder
+                   0.20000            0            0            0
+ 
+------------------------------------------------------------
+Equilibrium / Trim Conditions
+ 
+State Equilibrium = 
+                        Vt        alpha         beta          phi        theta
+                 540.00000      0.03441            0            0      0.03441
+ 
+                       psi            p            q            r           pn
+                         0            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   3500.00000     10.35403
+ 
+ 
+Control Equilibrium = 
+                  throttle     elevator      aileron       rudder
+                   0.15944     -0.77048            0            0
+ 
+------------------------------------------------------------
+Running jacobFun.m
+Linearized F-16 SS Model
+
+lin_f16 =
+ 
+  A = 
+                  Vt       alpha        beta         phi       theta
+   Vt       -0.01658        10.6  -8.377e-06  -2.766e-06      -32.17
+   alpha  -0.0002195     -0.9855   3.055e-06  -1.488e-06  -1.025e-05
+   beta            0           0     -0.3124     0.05954           0
+   phi             0           0           0           0           0
+   theta           0           0           0           0           0
+   psi             0           0           0           0           0
+   p               0           0       -31.6           0           0
+   q       6.662e-13       0.858           0           0           0
+   r               0           0       8.904           0           0
+   pn              1  -6.607e-06           0  -1.592e-06  -6.607e-06
+   pe              0           0         540      -18.58           0
+   alt    -6.579e-16        -540           0    4.64e-06         540
+   pow             0           0           0           0           0
+ 
+                 psi           p           q           r          pn
+   Vt              0           0     -0.4842           0           0
+   alpha           0           0      0.9146           0           0
+   beta            0     0.03387           0     -0.9925           0
+   phi             0           1           0     0.03443           0
+   theta           0           0           1           0           0
+   psi             0           0           0       1.001           0
+   p               0      -3.574   0.0002627      0.6331           0
+   q               0  -8.795e-06      -1.045   -0.002858           0
+   r               0    -0.02249    0.002539     -0.4621           0
+   pn              0           0           0           0           0
+   pe            540           0           0           0           0
+   alt             0           0           0           0           0
+   pow             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Vt              0    3.81e-05      0.3717
+   alpha           0   1.774e-06   -2.37e-05
+   beta            0           0           0
+   phi             0           0           0
+   theta           0           0           0
+   psi             0           0           0
+   p               0           0           0
+   q               0  -5.338e-15           0
+   r               0           0           0
+   pn              0           0           0
+   pe              0           0           0
+   alt             0           0           0
+   pow             0           0          -1
+ 
+  B = 
+           Throttle   Elevator    Aileron     Rudder
+   Vt             0     0.1848          0          0
+   alpha          0  -0.002085          0          0
+   beta           0          0  0.0002863  0.0007816
+   phi            0          0          0          0
+   theta          0          0          0          0
+   psi            0          0          0          0
+   p              0          0     -0.765     0.1376
+   q              0    -0.1833          0          0
+   r              0          0   -0.03332   -0.06472
+   pn             0          0          0          0
+   pe             0          0          0          0
+   alt            0          0          0          0
+   pow        64.94          0          0          0
+ 
+  C = 
+                  Vt       alpha        beta         phi       theta
+   Az       0.003698        16.9  -5.296e-08           0           0
+   q               0           0           0           0           0
+   alpha           0           1           0           0           0
+   theta           0           0           0           0           1
+   Vt              1           0           0           0           0
+   Ay              0           0       -5.24           0           0
+   p               0           0           0           0           0
+   r               0           0           0           0           0
+   beta            0           0           1           0           0
+   phi             0           0           0           1           0
+ 
+                 psi           p           q           r          pn
+   Az              0    -4.1e-08      0.9454   -0.001336           0
+   q               0           0           1           0           0
+   alpha           0           0           0           0           0
+   theta           0           0           0           0           0
+   Vt              0           0           0           0           0
+   Ay              0   -0.008953           0      0.1154           0
+   p               0           1           0           0           0
+   r               0           0           0           1           0
+   beta            0           0           0           0           0
+   phi             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Az              0  -2.979e-05           0
+   q               0           0           0
+   alpha           0           0           0
+   theta           0           0           0
+   Vt              0           0           0
+   Ay              0           0           0
+   p               0           0           0
+   r               0           0           0
+   beta            0           0           0
+   phi             0           0           0
+ 
+  D = 
+          Throttle  Elevator   Aileron    Rudder
+   Az            0  -0.05062         0         0
+   q             0         0         0         0
+   alpha         0         0         0         0
+   theta         0         0         0         0
+   Vt            0         0         0         0
+   Ay            0         0  0.004801   0.01311
+   p             0         0         0         0
+   r             0         0         0         0
+   beta          0         0         0         0
+   phi           0         0         0         0
+ 
+Name: Linearized F-16 SS Model
+Continuous-time state-space model.
+
+ 
+Decoupled LQR Controller Gains = 
+                     alpha            q         Nz_i         beta            p
+     elevator   -156.88015    -31.03701    -38.72983            0            0
+      aileron            0            0            0     38.02751     -5.65497
+       rudder            0            0            0     17.56400      1.58391
+ 
+                         r         ps_i       Ny_r_i
+     elevator            0            0            0
+      aileron    -14.08804    -34.06416     -9.95406
+       rudder    -41.43509      6.29550    -53.86016
+ 
+------------------------------------------------------------
+Running Nonlinear Simulation in ODE45
+</pre><h2>Implementation of a Simple Ground Collision Avoidance System<a name="4"></a></h2><p>Concept:   Roll until wings level (in the shortest direction)   When abs(roll rate) &lt; threshold, pull X g's until pitch angle &gt; X deg</p><pre class="codeinput"><span class="keyword">if</span>(autopilot.simpleGCAS)
+    <span class="comment">% Choose threshold values:</span>
+    eps_phi = deg2rad(5);   <span class="comment">% Max roll angle magnitude before pulling g's</span>
+    eps_p = deg2rad(1);     <span class="comment">% Max roll rate magnitude before pulling g's</span>
+    path_goal = deg2rad(0); <span class="comment">% Final desired path angle</span>
+    Nz_des = 5;             <span class="comment">% Desired maneuver g's</span>
+
+    <span class="comment">% Pull out important variables for ease of use</span>
+    phi = x_f16(4);             <span class="comment">% Roll angle    (rad)</span>
+    p = x_f16(7);               <span class="comment">% Roll rate     (rad/sec)</span>
+    theta = x_f16(5);           <span class="comment">% Pitch angle   (rad)</span>
+    alpha = x_f16(2);           <span class="comment">% AoA           (rad)</span>
+    <span class="comment">% Note: pathAngle = theta - alpha</span>
+
+    <span class="comment">% Set Proportional-Derivative Control Gains</span>
+	K_prop = 4;
+    K_der = K_prop*0.3;
+
+    <span class="comment">% Maneuver starts at t == 0 (boring)</span>
+    man_start = 2;
+
+    <span class="keyword">if</span>(t&lt;man_start)
+        <span class="comment">% Do nothing</span>
+    <span class="keyword">elseif</span>(man_check_1 &lt; 0)
+        <span class="comment">% Determine which angle is "level" (0, 180, 360, 720, etc)</span>
+        radsFromWingsLevel = round(phi/pi);
+        <span class="comment">% Until wings are "level" &amp; roll rate is small</span>
+        <span class="keyword">if</span>(abs(phi-pi*radsFromWingsLevel) &lt; eps_phi &amp;&amp; abs(p) &lt; eps_p)
+            man_check_1 = t;
+        <span class="keyword">else</span>
+            <span class="comment">% PD Control until phi == pi*radsFromWingsLevel</span>
+            ps = -(phi - pi*radsFromWingsLevel)*K_prop - p*K_der;
+        <span class="keyword">end</span>
+    <span class="keyword">elseif</span>(man_complete &lt; 0)
+        radsFromNoseLevel = round((theta-alpha)/(2*pi));
+        <span class="keyword">if</span>((theta-alpha) - 2*pi*radsFromNoseLevel &gt; path_goal)
+            man_complete = t;
+        <span class="keyword">else</span>
+            Nz = Nz_des;
+        <span class="keyword">end</span>
+    <span class="keyword">else</span>
+        <span class="comment">% What to do once recovery is complete</span>
+        Nz = 0;
+        ps = 0;
+        autopilot.steadyLevelFlightHold = true;
+    <span class="keyword">end</span>
+
+    <span class="comment">% Set t_maneuver states</span>
+    t_maneuver(1) = man_start;
+    t_maneuver(2) = man_complete;
+    t_maneuver(3) = man_check_1;
+<span class="keyword">end</span>
+</pre><h2>Implementation of a large-scale yaw to heading maneuver<a name="5"></a></h2><p>Note: This is not a heading tracker.</p><pre class="codeinput"><span class="keyword">if</span>(autopilot.turnToHeading)
+    <span class="comment">% Enable speed control</span>
+    autopilot.basicSpeedControl       = true;
+    <span class="comment">% Choose threshold values:</span>
+    eps_psi = deg2rad(5);       <span class="comment">% Max yaw angle at completion</span>
+    eps_r = deg2rad(0.1);       <span class="comment">% Max yaw rate magnitude at completion</span>
+    eps_phi = deg2rad(1);       <span class="comment">% Max roll angle at completion</span>
+    eps_p = deg2rad(0.1);       <span class="comment">% Max roll rate at completion</span>
+
+    psi_goal = deg2rad(0);      <span class="comment">% Final desired heading</span>
+
+    <span class="comment">% Pull out important variables for ease of use</span>
+    alpha = x_f16(2);           <span class="comment">% AoA           (rad)</span>
+    phi = x_f16(4);             <span class="comment">% Roll angle    (rad)</span>
+    p = x_f16(7);               <span class="comment">% Roll rate     (rad/sec)</span>
+    psi = x_f16(6);             <span class="comment">% Heading angle (rad) zero is north</span>
+    r = x_f16(9);               <span class="comment">% Heading rate  (rad/s)</span>
+
+    <span class="comment">% Maneuver starts at t == 0 (boring)</span>
+    man_start = 2;
+    maxBankAngle = deg2rad(ctrlLimits.MaxBankDeg);
+    autopilot.levelTurnControl = true;
+
+    <span class="comment">% Set a flag to determine the direction of the turn</span>
+    <span class="keyword">if</span>(turnDirection==0)
+        turnDirection = sign(psi_goal - psi);
+        <span class="comment">% Negative =</span>
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span>(t&lt;man_start)
+        <span class="comment">% Do nothing</span>
+        autopilot.steadyLevelFlightHold = true;
+    <span class="keyword">elseif</span>(man_check_1 &lt; 0)
+        autopilot.steadyLevelFlightHold = false;
+        <span class="comment">% phi_goal has not been passed yet</span>
+        <span class="keyword">if</span>(sign(psi_goal - psi) == turnDirection )
+            <span class="comment">% Set desired turn bank angle</span>
+            phi_goal = maxBankAngle*turnDirection;
+            <span class="comment">% Set Proportional-Derivative Control Gains</span>
+            K_prop = 4;
+            K_der = K_prop*0.5;
+            <span class="comment">% PD control for roll rate</span>
+            ps = (phi_goal-phi)*K_prop - p*K_der;
+        <span class="keyword">else</span>
+            man_check_1 = t;
+        <span class="keyword">end</span>
+    <span class="keyword">elseif</span>(man_complete &lt; 0)
+        <span class="comment">% Wings are not level yet</span>
+        <span class="keyword">if</span>(abs(phi) &gt; eps_phi || abs(p) &gt; eps_p)
+            K_prop = 4;
+            K_der = K_prop*0.5;
+            <span class="comment">% PD control for roll rate</span>
+            ps = -phi*K_prop - p*K_der;
+        <span class="keyword">else</span>
+            man_complete = t;
+        <span class="keyword">end</span>
+    <span class="keyword">else</span>
+        <span class="comment">% What to do once recovery is complete</span>
+        autopilot.steadyLevelFlightHold = true;
+    <span class="keyword">end</span>
+
+    t_maneuver(1) = man_start;
+    t_maneuver(2) = man_complete;
+    t_maneuver(3) = man_check_1;
+<span class="keyword">end</span>
+</pre><h2>Time-Based Commands<a name="6"></a></h2><p>Note: This is just a sample of time-scheduled commands</p><pre class="codeinput"><span class="keyword">if</span>(autopilot.timeTriggeredControl)
+    maxBank = 60; <span class="comment">% degrees</span>
+    <span class="keyword">if</span>(t&lt;5)
+        ps = deg2rad(maxBank/5);
+    <span class="keyword">elseif</span>(t&lt;10)
+        ps = deg2rad(-maxBank/5);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>Basic "Smart" Controls<a name="7"></a></h2><pre class="codeinput"><span class="comment">% Proportional control on airspeed</span>
+<span class="keyword">if</span>(autopilot.basicSpeedControl)
+    K_vt = 0.25;
+    throttle = -K_vt*(x_f16(1) - xequil(1));
+<span class="keyword">end</span>
+
+<span class="comment">% Parallel PD control on pitch and roll modes to stay level</span>
+<span class="keyword">if</span>(autopilot.steadyLevelFlightHold)
+    <span class="comment">% NOTE: This is not a recovery maneuver</span>
+
+    <span class="comment">% Pull out important variables for ease of use</span>
+    phi = x_f16(4);             <span class="comment">% Roll angle    (rad)</span>
+    p = x_f16(7);               <span class="comment">% Roll rate     (rad/sec)</span>
+    theta = x_f16(5);           <span class="comment">% Pitch angle   (rad)</span>
+    q = x_f16(8);               <span class="comment">% Pitch rate    (rad/sec)</span>
+    alpha = x_f16(2);           <span class="comment">% AoA           (rad)</span>
+
+    <span class="comment">% Set Proportional-Derivative control gains for roll</span>
+	K_prop = 1;
+    K_der = K_prop*0.3;
+
+    <span class="comment">% Determine which angle is "level" (0, 180, 360, 720, etc)</span>
+    radsFromWingsLevel = round(phi/pi);
+    <span class="comment">% PD Control on phi using roll rate</span>
+    ps = -(phi-pi*radsFromWingsLevel)*K_prop - p*K_der;
+
+    <span class="comment">% Set Proportional-Derivative control gains for pitch</span>
+	K_prop2 = 2;
+    K_der2 = K_prop*0.3;
+
+    <span class="comment">% Determine "which" angle is level (0, 360, 720, etc)</span>
+    radsFromNoseLevel = round((theta-alpha)/pi);
+    <span class="comment">% PD Control on theta using Nz</span>
+    Nz = -(theta - alpha - pi*radsFromNoseLevel)*K_prop2 - p*K_der2;
+
+    <span class="comment">% Note: Could implement PD control on psi using Ny_r (for small errors)</span>
+    <span class="comment">% Set Proportional-Derivative control gains for pitch</span>
+    <span class="comment">% 	K_prop3 = 5;</span>
+    <span class="comment">%     K_der3 = K_prop*0.3;</span>
+    <span class="comment">% PD Control on psi using Ny_r</span>
+    <span class="comment">% Ny_r = (psi_goal-psi)*K_prop3 - r*K_der3;</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Pull g's to maintain altitude during bank based on geometry/trig</span>
+<span class="keyword">if</span>(autopilot.levelTurnControl)
+    <span class="comment">% Calculate theta</span>
+    phi = x_f16(4);
+
+    <span class="comment">% Note: This calculation only works for {-pi/2 &lt; phi &lt; pi/2}</span>
+    <span class="keyword">if</span>(phi &lt;= pi/2 &amp;&amp; phi &gt; -pi/2)
+        Nz = 1/cos(phi) - 1; <span class="comment">% Keeps plane at altitude</span>
+    <span class="keyword">else</span>
+        Nz = ctrlLimits.NzMax;
+        fprintf(<span class="string">'At time = %d, phi = %d deg\n'</span>,t,rad2deg(phi));
+        warning(<span class="string">'Singularity at pi/2 &lt; theta &lt; -pi/2. Nz_ref = 0'</span>);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>Emforce G-limits and set maneuver states as needed.<a name="8"></a></h2><pre class="codeinput"><span class="keyword">if</span>(Nz &gt; ctrlLimits.NzMax)
+    fprintf(<span class="string">'Time = %d\n'</span>,t);
+    fprintf(<span class="string">'Nz   = %d g''s\n'</span>,Nz);
+    fprintf(<span class="string">'phi  = %d deg\n'</span>,rad2deg(x_f16(4)));
+    Nz = ctrlLimits.NzMax;
+    warning(<span class="string">'Nz_ref exceeds NzMax. Constraining...'</span>);
+    fprintf(<span class="string">'Nz_trimmed   = %d g''s\n'</span>,Nz);
+    disp(<span class="string">'Note: ODE45 may re-calculate this time step'</span>);
+<span class="keyword">end</span>
+
+<span class="keyword">if</span>(Nz &lt; ctrlLimits.NzMin)
+    fprintf(<span class="string">'Time = %d\n'</span>,t);
+    fprintf(<span class="string">'Nz   = %d g''s\n'</span>,Nz);
+    fprintf(<span class="string">'phi  = %d deg\n'</span>,rad2deg(x_f16(4)));
+    Nz = ctrlLimits.NzMin;
+    warning(<span class="string">'Nz_ref below NzMin. Constraining...'</span>);
+    fprintf(<span class="string">'Nz_trimmed   = %d g''s\n'</span>,Nz);
+    disp(<span class="string">'Note: ODE45 may re-calculate this time step'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Set t_maneuver states</span>
+t_maneuver(1) = man_start;
+t_maneuver(2) = man_complete;
+
+<span class="comment">% Create reference vector</span>
+u_ref = [Nz; ps; Ny_r; throttle];
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput">
+Simulation Complete
+Time to simulate (MM:SS.ms):
+00:35.807
+
+Begin back-calculation of controls
+Back-Calculation of Controls Complete
+Time to calculate (MM:SS.ms):
+01:23.684
+
+Begin struct generation &amp; pass/fail analysis
+Pass/Fail Analysis Complete
+Time to calculate (MM:SS.ms):
+00:00.037
+
+----------------------------------------------------------
+RESULTS:
+              Min &amp; Max Values:
+Min Altitude:             96.178   ft 
+Altitude Lost:          3403.822   ft 
+Min Airspeed:            540.000   ft/sec 
+Max Airspeed:            639.104   ft/sec 
+Max Down Force:            5.222   g's 
+Min Down Force:           -0.426   g's 
+Max Side Force:            0.061   g's 
+Max Roll Accel:          233.522   deg/sec^2 
+
+              Maneuver Event Times:
+Maneuver Start:            2.000   sec 
+Checkpoint  1:             3.395   sec 
+Maneuver Complete:         8.000   sec 
+Final Time:               15.000   sec 
+(if Checkpoint 2 &lt; Checkpoint 1, it is due to ODE45
+stepping backwards in time)
+
+              F-16 Attitude at Start:
+Roll   (phi):             45.000   deg 
+Pitch  (theta):          -72.000   deg 
+Yaw    (psi):            -45.000   deg 
+
+              F-16 Attitude at End:
+Roll   (phi):             -0.000   deg 
+Pitch  (theta):            2.249   deg 
+Yaw    (psi):            -33.514   deg 
+
+              Pass Fail Conditions:
+           stable: 1
+         airspeed: 1
+            alpha: 1
+             beta: 1
+               Nz: 1
+    psMaxAccelDeg: 1
+         altitude: 1
+     maneuverTime: 1
+
+----------------------------------------------------------
+Begin plotting
+Plot Generation Complete
+Time to calculate (MM:SS.ms):
+00:01.872
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [u_ref,t_maneuver] = getAutopilotCommands(t, x_f16, xequil,...
+    uequil, flightLimits, ctrlLimits, autopilot, resetTrue)
+% Given the time, f16 state, and trim condition, returns desired Nz, ps, 
+% Ny+r, and throttle settings.
+%
+%   Function Call:
+%       [u_ref] = getAutopilotCommands(t, x_f16, xequil, uequil, ...
+%           flightLimits, ctrlLimits, autopilot, resetTrue)
+%
+%   Inputs:
+%       t       - time of step (sec)
+%       x_f16   - State vector (f16 state) (16x1)
+%       xequil  - trim conditions (13x1)
+%       uequil  - equilibrium control (4x1)
+%       flightLimits - struct of flight limits
+%       ctrlLimits - struct of control limits
+%       autopilot - struct of autopilot settings:
+%           simpleGCAS              - "Roll & Pull" to level flight
+%           basicSpeedControl       - Proportional control on airspeed
+%           steadyLevelFlightHold   - PD control on pitch & roll
+%           levelTurnControl        - Pulls g's to stay level when banked
+%           turnToHeading          - Bank, G, unbank to heading
+%           timeTriggeredControl    - Program your own maneuvers f(t)
+%       resetTrue  - OPTIONAL: If 1, reset persistent variables          
+%
+%   Outputs:
+%       u_ref(1)    = Down force, Nz_ref                    (g's)
+%       u_ref(2)    = Stability roll rate, ps_ref           (rad/sec)
+%       u_ref(3)    = Side force, Ny_r_ref                  (g's)
+%       u_ref(4)    = Throttle Setting                      (ft/sec)
+%       t_maneuver(1) =     Maneuver start time             (sec)
+%       t_maneuver(2) =     Maneuver end time               (sec)
+%       t_maneuver(3:n) =   Checkpoint time                 (sec)
+%
+%   x_f16 States:
+%       x_f16(1)  = air speed, VT                            (ft/s)
+%       x_f16(2)  = angle of attack, alpha                   (rad)
+%       x_f16(3)  = angle of sideslip, beta                  (rad)
+%       x_f16(4)  = roll angle, phi                          (rad)
+%       x_f16(5)  = pitch angle, theta                       (rad)
+%       x_f16(6)  = yaw angle, psi                           (rad)
+%       x_f16(7)  = roll rate, P                             (rad/s)
+%       x_f16(8)  = pitch rate, Q                            (rad/s)
+%       x_f16(9)  = yaw rate, R                              (rad/s)
+%       x_f16(10) = northward horizontal displacement, pn    (ft)
+%       x_f16(11) = eastward horizontal displacement, pe     (ft)
+%       x_f16(12) = altitude, h                              (ft)
+%       x_f16(13) = engine thrust dynamics lag state, pow    (lbs)
+%       REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%       x_f16(14) = Integral of Nz error, Nz_e_i             (g's)
+%       x_f16(15) = Integral of Ps_error, Ps_e_i             (rad/sec)
+%       x_f16(16) = Integral of Ny_error, Ny_e_i             (g's)
+%
+%   Notes:
+%       This function is where you program the autopilot. Commanded
+%       Nz, ps, Ny+r, and throttle settings can be hard coded, time
+%       triggered, or state triggered. 
+% 
+%       Persistent variables are used to track any states that are not
+%       included in the F-16 state vector. These are needed for
+%       integration, tracking time flags, maneuver states, etc. If you
+%       modify this function to add your own, make sure to declare the
+%       persistent variables and included them in the "reset" block.
+%
+% <a href="https://github.com/pheidlauf/AeroBenchVV">AeroBenchVV</a>
+% Copyright: GNU General Public License 2017
+%
+% See also: GETDEFAULTSETTINGS, CONTROLLEDF16, PERSISTENT
+
+%% Initialize Flags, Controls, Vectors
+% Run top level function if called without arguments
+if(nargin==0)
+    Main;
+    return;
+end
+
+% If "resetTrue" not designated, set to false
+if(nargin < 8)
+    resetTrue = 0;
+end
+
+% Declare persistent flags and variables
+persistent man_start man_complete man_check_1 man_check_2;
+persistent turnDirection;
+
+% Reset persistent flags if (re)starting simulation
+if(isempty(man_start) || t <= 0 || resetTrue)
+    % Reset maneuver time flags if first func call or needed.
+    man_start = -1;
+    man_check_1 = -1;
+    man_check_2 = -1;
+    man_complete = -1;
+    turnDirection = 0;
+end
+
+% Zero default commands
+Nz = 0;
+ps = 0;
+Ny_r = 0;
+throttle = 0;
+
+% Initialize t_maneuver vector to zeros
+t_maneuver = zeros(1,2);
+
+%% Implementation of a Simple Ground Collision Avoidance System
+% Concept:
+%   Roll until wings level (in the shortest direction)
+%   When abs(roll rate) < threshold, pull X g's until pitch angle > X deg
+if(autopilot.simpleGCAS)
+    % Choose threshold values:
+    eps_phi = deg2rad(5);   % Max roll angle magnitude before pulling g's
+    eps_p = deg2rad(1);     % Max roll rate magnitude before pulling g's
+    path_goal = deg2rad(0); % Final desired path angle
+    Nz_des = 5;             % Desired maneuver g's
+    
+    % Pull out important variables for ease of use
+    phi = x_f16(4);             % Roll angle    (rad)
+    p = x_f16(7);               % Roll rate     (rad/sec)
+    theta = x_f16(5);           % Pitch angle   (rad)
+    alpha = x_f16(2);           % AoA           (rad)
+    % Note: pathAngle = theta - alpha
+    
+    % Set Proportional-Derivative Control Gains
+	K_prop = 4;
+    K_der = K_prop*0.3;
+    
+    % Maneuver starts at t == 0 (boring)
+    man_start = 2; 
+    
+    if(t<man_start)
+        % Do nothing
+    elseif(man_check_1 < 0)
+        % Determine which angle is "level" (0, 180, 360, 720, etc)
+        radsFromWingsLevel = round(phi/pi);
+        % Until wings are "level" & roll rate is small
+        if(abs(phi-pi*radsFromWingsLevel) < eps_phi && abs(p) < eps_p)       
+            man_check_1 = t;
+        else
+            % PD Control until phi == pi*radsFromWingsLevel
+            ps = -(phi - pi*radsFromWingsLevel)*K_prop - p*K_der;
+        end
+    elseif(man_complete < 0)      
+        radsFromNoseLevel = round((theta-alpha)/(2*pi));
+        if((theta-alpha) - 2*pi*radsFromNoseLevel > path_goal)
+            man_complete = t;
+        else
+            Nz = Nz_des;
+        end
+    else
+        % What to do once recovery is complete
+        Nz = 0;
+        ps = 0;
+        autopilot.steadyLevelFlightHold = true;
+    end
+    
+    % Set t_maneuver states
+    t_maneuver(1) = man_start;
+    t_maneuver(2) = man_complete;
+    t_maneuver(3) = man_check_1;    
+end
+
+%% Implementation of a large-scale yaw to heading maneuver
+% Note: This is not a heading tracker.
+
+if(autopilot.turnToHeading)
+    % Enable speed control
+    autopilot.basicSpeedControl       = true;
+    % Choose threshold values:
+    eps_psi = deg2rad(5);       % Max yaw angle at completion
+    eps_r = deg2rad(0.1);       % Max yaw rate magnitude at completion
+    eps_phi = deg2rad(1);       % Max roll angle at completion
+    eps_p = deg2rad(0.1);       % Max roll rate at completion
+    
+    psi_goal = deg2rad(0);      % Final desired heading
+    
+    % Pull out important variables for ease of use
+    alpha = x_f16(2);           % AoA           (rad)
+    phi = x_f16(4);             % Roll angle    (rad)
+    p = x_f16(7);               % Roll rate     (rad/sec)
+    psi = x_f16(6);             % Heading angle (rad) zero is north
+    r = x_f16(9);               % Heading rate  (rad/s)
+    
+    % Maneuver starts at t == 0 (boring)
+    man_start = 2; 
+    maxBankAngle = deg2rad(ctrlLimits.MaxBankDeg);
+    autopilot.levelTurnControl = true;
+    
+    % Set a flag to determine the direction of the turn
+    if(turnDirection==0)
+        turnDirection = sign(psi_goal - psi);
+        % Negative = 
+    end
+    
+    if(t<man_start)
+        % Do nothing
+        autopilot.steadyLevelFlightHold = true;
+    elseif(man_check_1 < 0)
+        autopilot.steadyLevelFlightHold = false;
+        % phi_goal has not been passed yet
+        if(sign(psi_goal - psi) == turnDirection )
+            % Set desired turn bank angle
+            phi_goal = maxBankAngle*turnDirection;
+            % Set Proportional-Derivative Control Gains
+            K_prop = 4;
+            K_der = K_prop*0.5;
+            % PD control for roll rate
+            ps = (phi_goal-phi)*K_prop - p*K_der;
+        else
+            man_check_1 = t;
+        end 
+    elseif(man_complete < 0)
+        % Wings are not level yet
+        if(abs(phi) > eps_phi || abs(p) > eps_p)
+            K_prop = 4;
+            K_der = K_prop*0.5;
+            % PD control for roll rate
+            ps = -phi*K_prop - p*K_der;
+        else
+            man_complete = t;
+        end
+    else
+        % What to do once recovery is complete
+        autopilot.steadyLevelFlightHold = true;
+    end
+    
+    t_maneuver(1) = man_start;
+    t_maneuver(2) = man_complete;
+    t_maneuver(3) = man_check_1; 
+end
+
+
+%% Time-Based Commands
+% Note: This is just a sample of time-scheduled commands
+if(autopilot.timeTriggeredControl)
+    maxBank = 60; % degrees 
+    if(t<5)
+        ps = deg2rad(maxBank/5);
+    elseif(t<10)
+        ps = deg2rad(-maxBank/5);
+    end
+end
+
+%% Basic "Smart" Controls
+
+% Proportional control on airspeed
+if(autopilot.basicSpeedControl)
+    K_vt = 0.25;
+    throttle = -K_vt*(x_f16(1) - xequil(1));
+end
+
+% Parallel PD control on pitch and roll modes to stay level
+if(autopilot.steadyLevelFlightHold)    
+    % NOTE: This is not a recovery maneuver
+    
+    % Pull out important variables for ease of use
+    phi = x_f16(4);             % Roll angle    (rad)
+    p = x_f16(7);               % Roll rate     (rad/sec)
+    theta = x_f16(5);           % Pitch angle   (rad)
+    q = x_f16(8);               % Pitch rate    (rad/sec)
+    alpha = x_f16(2);           % AoA           (rad)
+    
+    % Set Proportional-Derivative control gains for roll
+	K_prop = 1;
+    K_der = K_prop*0.3;
+    
+    % Determine which angle is "level" (0, 180, 360, 720, etc)
+    radsFromWingsLevel = round(phi/pi);
+    % PD Control on phi using roll rate 
+    ps = -(phi-pi*radsFromWingsLevel)*K_prop - p*K_der;
+    
+    % Set Proportional-Derivative control gains for pitch
+	K_prop2 = 2;
+    K_der2 = K_prop*0.3;
+    
+    % Determine "which" angle is level (0, 360, 720, etc)
+    radsFromNoseLevel = round((theta-alpha)/pi);
+    % PD Control on theta using Nz
+    Nz = -(theta - alpha - pi*radsFromNoseLevel)*K_prop2 - p*K_der2;
+
+    % Note: Could implement PD control on psi using Ny_r (for small errors)
+    % Set Proportional-Derivative control gains for pitch
+    % 	K_prop3 = 5;
+    %     K_der3 = K_prop*0.3;
+    % PD Control on psi using Ny_r
+    % Ny_r = (psi_goal-psi)*K_prop3 - r*K_der3;
+end
+
+% Pull g's to maintain altitude during bank based on geometry/trig
+if(autopilot.levelTurnControl)
+    % Calculate theta
+    phi = x_f16(4);
+    
+    % Note: This calculation only works for {-pi/2 < phi < pi/2}
+    if(phi <= pi/2 && phi > -pi/2)
+        Nz = 1/cos(phi) - 1; % Keeps plane at altitude
+    else
+        Nz = ctrlLimits.NzMax;
+        fprintf('At time = %d, phi = %d deg\n',t,rad2deg(phi));
+        warning('Singularity at pi/2 < theta < -pi/2. Nz_ref = 0');
+    end      
+end
+
+
+%% Emforce G-limits and set maneuver states as needed.
+if(Nz > ctrlLimits.NzMax)
+    fprintf('Time = %d\n',t);
+    fprintf('Nz   = %d g''s\n',Nz);
+    fprintf('phi  = %d deg\n',rad2deg(x_f16(4)));
+    Nz = ctrlLimits.NzMax;
+    warning('Nz_ref exceeds NzMax. Constraining...');   
+    fprintf('Nz_trimmed   = %d g''s\n',Nz);
+    disp('Note: ODE45 may re-calculate this time step');
+end
+
+if(Nz < ctrlLimits.NzMin)
+    fprintf('Time = %d\n',t);
+    fprintf('Nz   = %d g''s\n',Nz);
+    fprintf('phi  = %d deg\n',rad2deg(x_f16(4)));
+    Nz = ctrlLimits.NzMin;
+    warning('Nz_ref below NzMin. Constraining...');
+    fprintf('Nz_trimmed   = %d g''s\n',Nz);
+    disp('Note: ODE45 may re-calculate this time step');
+end
+
+% Set t_maneuver states
+t_maneuver(1) = man_start;
+t_maneuver(2) = man_complete;
+    
+% Create reference vector
+u_ref = [Nz; ps; Ny_r; throttle];
+
+end
+##### SOURCE END #####
+--></body></html>

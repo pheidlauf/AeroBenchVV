@@ -1,0 +1,386 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>controlledF16</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-21"><meta name="DC.source" content="controlledF16.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Implement LQR Feedback Control</a></li><li><a href="#4">Limit controls to saturation limits (except for 'linear')</a></li><li><a href="#5">Generate xd using user-defined method:</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [ xd, u, Nz, ps, Ny_r ] = controlledF16( t, x_f16,<span class="keyword">...</span>
+    xequil, uequil, K_lqr, F16_model, lin_f16, flightLimits, ctrlLimits,<span class="keyword">...</span>
+    autopilot)
+</pre><pre class="codeinput"><span class="comment">% CONTROLLEDF16 Returns the LQR-controlled F-16 state derivatives and more</span>
+<span class="comment">%   Function Call:</span>
+<span class="comment">%       [ xd, u, Nz, ps, Ny_r ] = CONTROLLEDF16( t, x_f16,...</span>
+<span class="comment">%           xequil, uequil, K_lqr, F16_model, lin_f16, ...</span>
+<span class="comment">%           flightLimits, ctrlLimits, autopilot)</span>
+<span class="comment">%</span>
+<span class="comment">%   Inputs:</span>
+<span class="comment">%       t       - time of step</span>
+<span class="comment">%       x_f16   - F16 state vector (13+3 x 1) in rads, rads/sec, etc.</span>
+<span class="comment">%       xequil  - trim states (13x1) in rads</span>
+<span class="comment">%       uequil  - trim control (4x1) in degs</span>
+<span class="comment">%       K_lqr   - linear quadratic regulator gain matrix (3x8)</span>
+<span class="comment">%       F16_model - Optional string defining which function to use to</span>
+<span class="comment">%           calculate state derivatives: {'morelli','stevens','linear'}.</span>
+<span class="comment">%           Defaults to 'morelli'.</span>
+<span class="comment">%       lin_f16 - Linear state space model of F-16 (req. only for 'linear')</span>
+<span class="comment">%       ctrlLimits - struct of control limits</span>
+<span class="comment">%</span>
+<span class="comment">%   x_f16 states</span>
+<span class="comment">%       x_f16(1)  = air speed, VT                            (ft/s)</span>
+<span class="comment">%       x_f16(2)  = angle of attack, alpha                   (rad)</span>
+<span class="comment">%       x_f16(3)  = angle of sideslip, beta                  (rad)</span>
+<span class="comment">%       x_f16(4)  = roll angle, phi                          (rad)</span>
+<span class="comment">%       x_f16(5)  = pitch angle, theta                       (rad)</span>
+<span class="comment">%       x_f16(6)  = yaw angle, psi                           (rad)</span>
+<span class="comment">%       x_f16(7)  = roll rate, P                             (rad/s)</span>
+<span class="comment">%       x_f16(8)  = pitch rate, Q                            (rad/s)</span>
+<span class="comment">%       x_f16(9)  = yaw rate, R                              (rad/s)</span>
+<span class="comment">%       x_f16(10) = northward horizontal displacement, pn    (ft)</span>
+<span class="comment">%       x_f16(11) = eastward horizontal displacement, pe     (ft)</span>
+<span class="comment">%       x_f16(12) = altitude, h                              (ft)</span>
+<span class="comment">%       x_f16(13) = engine thrust dynamics lag state, pow    (lbs)</span>
+<span class="comment">%       ----------------------------------------------------------</span>
+<span class="comment">%       x_f16(14) = Integral of Nz error, int_e_Nz           (g's)</span>
+<span class="comment">%       x_f16(15) = Integral of Ps_error, int_e_ps           (rad/sec)</span>
+<span class="comment">%       x_f16(16) = Integral of Ny_error, int_e_Ny_r         (g's)</span>
+<span class="comment">%</span>
+<span class="comment">%   Nonlinear f16 controls:</span>
+<span class="comment">%       u(1) = throttle command     (0 to 1)</span>
+<span class="comment">%       u(2) = elevator command     (deg)</span>
+<span class="comment">%       u(3) = aileron command      (deg)</span>
+<span class="comment">%       u(4) = rudder command       (deg)</span>
+<span class="comment">%</span>
+<span class="comment">%   LQR Controls:</span>
+<span class="comment">%       u(1) = throttle command     (0 to 1)</span>
+<span class="comment">%       u(2) = elevator command     (deg)</span>
+<span class="comment">%       u(3) = aileron command      (deg)</span>
+<span class="comment">%       u(4) = rudder command       (deg)</span>
+<span class="comment">%       ------------------------------------</span>
+<span class="comment">%       u(5) = Nz commanded         (g's)</span>
+<span class="comment">%       u(6) = roll rate commanded  (deg/s)</span>
+<span class="comment">%       u(7) = Ny+r commanded       (g's)</span>
+<span class="comment">%</span>
+<span class="comment">%   OUTPUT:</span>
+<span class="comment">%       xd (16x1)   - units in [rad, rad/s, ft/s, ft, g's, etc...]</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% &lt;a href="https://github.com/pheidlauf/AeroBenchVV"&gt;AeroBenchVV&lt;/a&gt;</span>
+<span class="comment">% Copyright: GNU General Public License 2017</span>
+<span class="comment">%</span>
+<span class="comment">% See also: RUNF16SIM, GETAUTOPILOTCOMMANDS, BUILDLATERALLQRCTRL,</span>
+<span class="comment">% BUILDLONGITUDINALLQRCTRL, ODE45</span>
+
+<span class="comment">% Get Reference Control Vector (commanded Nz, ps, Ny+r, throttle)</span>
+u_ref = getAutopilotCommands(t, x_f16, xequil, uequil, <span class="keyword">...</span>
+    flightLimits, ctrlLimits, autopilot, 0); <span class="comment">% in g's &amp; rads/sec</span>
+
+<span class="comment">% Calculate perturbation from trim state</span>
+x_delta = x_f16 - [xequil; 0; 0; 0]; <span class="comment">% in rads</span>
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in controlledF16 (line 68)
+u_ref = getAutopilotCommands(t, x_f16, xequil, uequil, ...
+</pre><h2>Implement LQR Feedback Control<a name="3"></a></h2><p>Reorder states to match controller:       [alpha, q, int_e_Nz, beta, p, r, int_e_ps, int_e_Ny_r]</p><pre class="codeinput">x_ctrl = x_delta([2 8 14 3 7 9 15 16]);
+
+<span class="comment">% Initialize control vectors</span>
+u_deg = zeros(4,1); <span class="comment">% throt, ele, ail, rud</span>
+u = zeros(7,1);     <span class="comment">% throt, ele, ail, rud, Nz_ref, ps_ref, Ny_r_ref</span>
+
+<span class="comment">% Calculate control using LQR gains</span>
+<span class="comment">% u_deg(2) = (-K_lqr(1,1:3)*x_ctrl(1:3)); % Longitudinal Control Only</span>
+<span class="comment">% u_deg(3:4) = (-K_lqr(2:3,4:end)*x_ctrl(4:end)); % Lateral Control Only</span>
+u_deg(2:4) = -K_lqr*x_ctrl; <span class="comment">% Full Control</span>
+
+<span class="comment">% Set throttle as directed from output of getOuterLoopCtrl(...)</span>
+u_deg(1) = u_ref(4);
+
+<span class="comment">% Add in equilibrium control</span>
+u_deg(1:4) = u_deg(1:4) + uequil;
+</pre><h2>Limit controls to saturation limits (except for 'linear')<a name="4"></a></h2><pre class="codeinput"><span class="keyword">if</span>(~strcmp(F16_model,<span class="string">'linear'</span>) &amp;&amp; ~strcmp(F16_model,<span class="string">'fullLinear'</span>))
+    <span class="comment">% Limit throttle from 0 to 1</span>
+    u_deg(1) = max(min(u_deg(1),ctrlLimits.ThrottleMax),<span class="keyword">...</span>
+        ctrlLimits.ThrottleMin);
+
+    <span class="comment">% Limit elevator from -25 to 25 deg</span>
+    u_deg(2) = max(min(u_deg(2),ctrlLimits.ElevatorMaxDeg),<span class="keyword">...</span>
+        ctrlLimits.ElevatorMinDeg);
+
+    <span class="comment">% Limit aileron from -21.5 to 21.5 deg</span>
+    u_deg(3) = max(min(u_deg(3),ctrlLimits.AileronMaxDeg),<span class="keyword">...</span>
+        ctrlLimits.AileronMinDeg);
+
+    <span class="comment">% Limit rudder from -30 to 30 deg</span>
+    u_deg(4) = max(min(u_deg(4),ctrlLimits.RudderMaxDeg),<span class="keyword">...</span>
+        ctrlLimits.RudderMinDeg);
+<span class="keyword">end</span>
+</pre><h2>Generate xd using user-defined method:<a name="5"></a></h2><pre class="codeinput"><span class="comment">%   Note: Control vector (u) for subF16 is in units of degrees</span>
+<span class="keyword">if</span>(strcmp(F16_model,<span class="string">'stevens'</span>))
+    <span class="comment">% Uses lookup tables / interpolation to get state derivatives</span>
+    [xd, Nz, Ny] = subf16_stevens(x_f16(1:13), u_deg);
+<span class="keyword">elseif</span>(strcmp(F16_model,<span class="string">'morelli'</span>))
+    <span class="comment">% Uses polynomial equations to get state derivatives</span>
+    [xd, Nz, Ny] = subf16_morelli(x_f16(1:13), u_deg);
+<span class="keyword">elseif</span>(strcmp(F16_model,<span class="string">'linear'</span>))
+    <span class="comment">% Uses linear approximations to get state derivatives</span>
+    xd = lin_f16.a*x_f16(1:13)      + lin_f16.b*u_deg;
+    <span class="comment">% Uses polynomial equations to get down &amp; side forces</span>
+    [~, Nz, Ny] = subf16_morelli(x_f16(1:13), u_deg);
+<span class="keyword">elseif</span>(strcmp(F16_model,<span class="string">'fullLinear'</span>))
+    warning(<span class="string">'fullLinear not yet implemented correctly'</span>);
+    <span class="comment">% Uses linear approximations to get state derivatives</span>
+    xd = lin_f16.a*x_f16(1:13)      + lin_f16.b*u_deg;
+
+    <span class="comment">% Uses linear approximations to get down &amp; side forces</span>
+    <span class="comment">% TODO: Account for shift from CG to pilot??</span>
+    Nz = lin_f16.c(1,:)*x_f16(1:13) + lin_f16.d(1,:)*u_deg;
+    Ny = lin_f16.c(6,:)*x_f16(1:13) + lin_f16.d(6,:)*u_deg;
+<span class="keyword">else</span>
+   error(<span class="string">'Unsupported F16_model requested'</span>)
+<span class="keyword">end</span>
+
+<span class="comment">% Calculate (Nonlinear) stability axis roll rate:</span>
+<span class="keyword">if</span>(strcmp(F16_model,<span class="string">'linear'</span>) || strcmp(F16_model,<span class="string">'fullLinear'</span>))
+    <span class="comment">% Linear (Approx):          ps = p            +     r*alpha</span>
+    ps = x_ctrl(5)*x_ctrl(1);
+<span class="keyword">else</span>
+    <span class="comment">% Nonlinear (Actual):       ps = p*cos(alpha) +     r*sin(alpha)</span>
+    ps = x_ctrl(5)*cos(x_ctrl(1)) + x_ctrl(6)*sin(x_ctrl(1));
+<span class="keyword">end</span>
+
+<span class="comment">% Calculate (side force + yaw rate) term</span>
+Ny_r = Ny + x_ctrl(6);
+
+<span class="comment">% Convert all degree values to radians for output</span>
+u(1) = u_deg(1);
+u(2:4) = deg2rad(u_deg(2:4));
+u(5:7) = u_ref(1:3);
+
+<span class="comment">% Add tracked error states to xd for integration</span>
+xd(14:16) = [Nz - u_ref(1); ps - u_ref(2); Ny_r - u_ref(3)];
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [ xd, u, Nz, ps, Ny_r ] = controlledF16( t, x_f16,... 
+    xequil, uequil, K_lqr, F16_model, lin_f16, flightLimits, ctrlLimits,...
+    autopilot)
+% CONTROLLEDF16 Returns the LQR-controlled F-16 state derivatives and more
+%   Function Call:
+%       [ xd, u, Nz, ps, Ny_r ] = CONTROLLEDF16( t, x_f16,... 
+%           xequil, uequil, K_lqr, F16_model, lin_f16, ...
+%           flightLimits, ctrlLimits, autopilot)
+%
+%   Inputs:
+%       t       - time of step
+%       x_f16   - F16 state vector (13+3 x 1) in rads, rads/sec, etc.
+%       xequil  - trim states (13x1) in rads
+%       uequil  - trim control (4x1) in degs
+%       K_lqr   - linear quadratic regulator gain matrix (3x8)
+%       F16_model - Optional string defining which function to use to
+%           calculate state derivatives: {'morelli','stevens','linear'}.
+%           Defaults to 'morelli'.
+%       lin_f16 - Linear state space model of F-16 (req. only for 'linear')
+%       ctrlLimits - struct of control limits
+%
+%   x_f16 states
+%       x_f16(1)  = air speed, VT                            (ft/s)
+%       x_f16(2)  = angle of attack, alpha                   (rad)
+%       x_f16(3)  = angle of sideslip, beta                  (rad)
+%       x_f16(4)  = roll angle, phi                          (rad)
+%       x_f16(5)  = pitch angle, theta                       (rad)
+%       x_f16(6)  = yaw angle, psi                           (rad)
+%       x_f16(7)  = roll rate, P                             (rad/s)
+%       x_f16(8)  = pitch rate, Q                            (rad/s)
+%       x_f16(9)  = yaw rate, R                              (rad/s)
+%       x_f16(10) = northward horizontal displacement, pn    (ft)
+%       x_f16(11) = eastward horizontal displacement, pe     (ft)
+%       x_f16(12) = altitude, h                              (ft)
+%       x_f16(13) = engine thrust dynamics lag state, pow    (lbs)
+%       REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%       x_f16(14) = Integral of Nz error, int_e_Nz           (g's)
+%       x_f16(15) = Integral of Ps_error, int_e_ps           (rad/sec)
+%       x_f16(16) = Integral of Ny_error, int_e_Ny_r         (g's)
+%
+%   Nonlinear f16 controls:
+%       u(1) = throttle command     (0 to 1)
+%       u(2) = elevator command     (deg)
+%       u(3) = aileron command      (deg)
+%       u(4) = rudder command       (deg)
+%
+%   LQR Controls:
+%       u(1) = throttle command     (0 to 1)
+%       u(2) = elevator command     (deg)
+%       u(3) = aileron command      (deg)
+%       u(4) = rudder command       (deg)
+%       REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%       u(5) = Nz commanded         (g's)
+%       u(6) = roll rate commanded  (deg/s)
+%       u(7) = Ny+r commanded       (g's)  
+%
+%   OUTPUT:
+%       xd (16x1)   - units in [rad, rad/s, ft/s, ft, g's, etc...]
+%
+%
+% <a href="https://github.com/pheidlauf/AeroBenchVV">AeroBenchVV</a>
+% Copyright: GNU General Public License 2017
+%
+% See also: RUNF16SIM, GETAUTOPILOTCOMMANDS, BUILDLATERALLQRCTRL,
+% BUILDLONGITUDINALLQRCTRL, ODE45
+                  
+% Get Reference Control Vector (commanded Nz, ps, Ny+r, throttle)
+u_ref = getAutopilotCommands(t, x_f16, xequil, uequil, ...
+    flightLimits, ctrlLimits, autopilot, 0); % in g's & rads/sec
+
+% Calculate perturbation from trim state 
+x_delta = x_f16 - [xequil; 0; 0; 0]; % in rads
+
+%% Implement LQR Feedback Control
+% Reorder states to match controller:
+%       [alpha, q, int_e_Nz, beta, p, r, int_e_ps, int_e_Ny_r]
+x_ctrl = x_delta([2 8 14 3 7 9 15 16]);
+
+% Initialize control vectors
+u_deg = zeros(4,1); % throt, ele, ail, rud
+u = zeros(7,1);     % throt, ele, ail, rud, Nz_ref, ps_ref, Ny_r_ref
+
+% Calculate control using LQR gains
+% u_deg(2) = (-K_lqr(1,1:3)*x_ctrl(1:3)); % Longitudinal Control Only
+% u_deg(3:4) = (-K_lqr(2:3,4:end)*x_ctrl(4:end)); % Lateral Control Only
+u_deg(2:4) = -K_lqr*x_ctrl; % Full Control
+
+% Set throttle as directed from output of getOuterLoopCtrl(...)
+u_deg(1) = u_ref(4);
+
+% Add in equilibrium control
+u_deg(1:4) = u_deg(1:4) + uequil;           
+
+%% Limit controls to saturation limits (except for 'linear')
+if(~strcmp(F16_model,'linear') && ~strcmp(F16_model,'fullLinear'))
+    % Limit throttle from 0 to 1
+    u_deg(1) = max(min(u_deg(1),ctrlLimits.ThrottleMax),...
+        ctrlLimits.ThrottleMin);
+    
+    % Limit elevator from -25 to 25 deg
+    u_deg(2) = max(min(u_deg(2),ctrlLimits.ElevatorMaxDeg),...
+        ctrlLimits.ElevatorMinDeg);
+    
+    % Limit aileron from -21.5 to 21.5 deg
+    u_deg(3) = max(min(u_deg(3),ctrlLimits.AileronMaxDeg),...
+        ctrlLimits.AileronMinDeg);
+    
+    % Limit rudder from -30 to 30 deg
+    u_deg(4) = max(min(u_deg(4),ctrlLimits.RudderMaxDeg),...
+        ctrlLimits.RudderMinDeg);
+end
+
+%% Generate xd using user-defined method:
+
+%   Note: Control vector (u) for subF16 is in units of degrees
+if(strcmp(F16_model,'stevens'))
+    % Uses lookup tables / interpolation to get state derivatives
+    [xd, Nz, Ny] = subf16_stevens(x_f16(1:13), u_deg);
+elseif(strcmp(F16_model,'morelli'))
+    % Uses polynomial equations to get state derivatives
+    [xd, Nz, Ny] = subf16_morelli(x_f16(1:13), u_deg); 
+elseif(strcmp(F16_model,'linear'))
+    % Uses linear approximations to get state derivatives
+    xd = lin_f16.a*x_f16(1:13)      + lin_f16.b*u_deg;
+    % Uses polynomial equations to get down & side forces
+    [~, Nz, Ny] = subf16_morelli(x_f16(1:13), u_deg); 
+elseif(strcmp(F16_model,'fullLinear'))
+    warning('fullLinear not yet implemented correctly');
+    % Uses linear approximations to get state derivatives
+    xd = lin_f16.a*x_f16(1:13)      + lin_f16.b*u_deg;
+    
+    % Uses linear approximations to get down & side forces
+    % TODO: Account for shift from CG to pilot??
+    Nz = lin_f16.c(1,:)*x_f16(1:13) + lin_f16.d(1,:)*u_deg;
+    Ny = lin_f16.c(6,:)*x_f16(1:13) + lin_f16.d(6,:)*u_deg;
+else
+   error('Unsupported F16_model requested') 
+end
+
+% Calculate (Nonlinear) stability axis roll rate:
+if(strcmp(F16_model,'linear') || strcmp(F16_model,'fullLinear'))
+    % Linear (Approx):          ps = p            +     r*alpha
+    ps = x_ctrl(5)*x_ctrl(1);
+else
+    % Nonlinear (Actual):       ps = p*cos(alpha) +     r*sin(alpha)
+    ps = x_ctrl(5)*cos(x_ctrl(1)) + x_ctrl(6)*sin(x_ctrl(1)); 
+end
+
+% Calculate (side force + yaw rate) term
+Ny_r = Ny + x_ctrl(6);
+
+% Convert all degree values to radians for output
+u(1) = u_deg(1);
+u(2:4) = deg2rad(u_deg(2:4));
+u(5:7) = u_ref(1:3);
+
+% Add tracked error states to xd for integration
+xd(14:16) = [Nz - u_ref(1); ps - u_ref(2); Ny_r - u_ref(3)]; 
+
+end
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,597 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>BuildLongitudinalLqrCtrl</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-21"><meta name="DC.source" content="BuildLongitudinalLqrCtrl.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Initialize Starting Variables</a></li><li><a href="#3">Build Linearized Model</a></li><li><a href="#4">Decouple Linearized F-16 Model: Isolate Longitudinal States &amp; Actuators</a></li><li><a href="#5">Select State &amp; Control Weights &amp; Penalties</a></li><li><a href="#6">Calculate Longitudinal Short Period LQR Gains</a></li><li><a href="#7">Build State Space Models of Longitudinal F-16</a></li><li><a href="#8">Compare Margins, Damping Ratios, and Pole Frequencies</a></li><li><a href="#9">Citations</a></li></ul></div><pre class="codeinput"><span class="comment">% Determines the gains for a decoupled F-16 Linear Quadratic Regulator</span>
+<span class="comment">% for the Stevens &amp; Lewis mathematical model of the F-16 aircraft at a</span>
+<span class="comment">% specified trim point. The lateral and longitudinal modes of the F-16 are</span>
+<span class="comment">% decoupled. This script builds the longitudinal controller based on</span>
+<span class="comment">% specified weights on state error and control effort and trim point.</span>
+<span class="comment">%</span>
+<span class="comment">% &lt;a href="https://github.com/pheidlauf/AeroBenchVV"&gt;AeroBenchVV&lt;/a&gt;</span>
+<span class="comment">% Copyright: GNU General Public License 2017</span>
+<span class="comment">%</span>
+<span class="comment">% See also: BUILDLATERALLQRCTRL, CONTROLLEDF16</span>
+</pre><h2>Initialize Starting Variables<a name="2"></a></h2><pre class="codeinput">close <span class="string">all</span>; clear; clc;
+addpath(genpath(<span class="string">'F16_Model'</span>)); <span class="comment">% Add necessary sub folder to path</span>
+
+disp(<span class="string">'------------------------------------------------------------'</span>);
+disp(<span class="string">'Longitudinal F-16 Controller for Nz tracking'</span>);
+disp(<span class="string">'------------------------------------------------------------'</span>);
+disp(<span class="string">'MANUAL INPUTS:'</span>);
+
+<span class="comment">% SET THESE VALUES MANUALLY</span>
+altg = 1000;    <span class="comment">% Altitude guess (ft msl)</span>
+Vtg = 502;      <span class="comment">% Velocity guess (ft/sec)</span>
+phig = 0;       <span class="comment">% Roll angle from horizontal guess (deg)</span>
+thetag = 0;     <span class="comment">% Pitch angle guess (deg)</span>
+<span class="comment">% Note: If a gain-scheduled controller is desired, the above values would</span>
+<span class="comment">% be varied for each desired trim point.</span>
+
+xguess = [Vtg 0 0 phig thetag 0 0 0 0 0 0 altg 0];
+
+<span class="comment">% u = [throttle elevator aileron rudder]</span>
+uguess = [.2 0 0 0];
+
+<span class="comment">% Orientation for Linearization</span>
+<span class="comment">% 1:    Wings Level (gamma = 0)</span>
+<span class="comment">% 2:    Wings Level (gamma &lt;&gt; 0)</span>
+<span class="comment">% 3:    Constant Altitude Turn</span>
+<span class="comment">% 4:    Steady Pull Up</span>
+orient = 4;
+inputs = [xguess(1), xguess(12), 0, 0, 0];
+printOn = true;
+
+<span class="keyword">if</span>(printOn)
+    disp(<span class="string">'trimmerFun Inputs:'</span>);
+    printmat(inputs,<span class="string">'inputs'</span>,[],<span class="string">'Vt h gamma psidot thetadot'</span>)
+    fprintf(<span class="string">'Orientation Used: '</span>);
+    <span class="keyword">switch</span> orient
+        <span class="keyword">case</span> 1
+            disp(<span class="string">'Wings Level (gamma = 0)'</span>);
+        <span class="keyword">case</span> 2
+            disp(<span class="string">'Wings Level (gamme &lt;&gt; 0)'</span>);
+        <span class="keyword">case</span> 3
+            disp(<span class="string">'Constant Altitude Turn'</span>);
+        <span class="keyword">case</span> 4
+            disp(<span class="string">'Steady Pull Up'</span>);
+        <span class="keyword">otherwise</span>
+            error(<span class="string">'orient invalid'</span>);
+    <span class="keyword">end</span>
+    printmat(xguess,<span class="string">'State Guess'</span>,[],<span class="keyword">...</span>
+        <span class="string">'Vt alpha beta phi theta psi p q r pn pe alt pow'</span>);
+    printmat(uguess,<span class="string">'Control Guess'</span>,[],<span class="keyword">...</span>
+        <span class="string">'throttle elevator aileron rudder'</span>);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">------------------------------------------------------------
+Longitudinal F-16 Controller for Nz tracking
+------------------------------------------------------------
+MANUAL INPUTS:
+trimmerFun Inputs:
+ 
+inputs = 
+                        Vt            h        gamma       psidot     thetadot
+                 502.00000   1000.00000            0            0            0
+ 
+Orientation Used: Steady Pull Up
+ 
+State Guess = 
+                        Vt        alpha         beta          phi        theta
+                 502.00000            0            0            0            0
+ 
+                       psi            p            q            r           pn
+                         0            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   1000.00000            0
+ 
+ 
+Control Guess = 
+                  throttle     elevator      aileron       rudder
+                   0.20000            0            0            0
+ 
+</pre><h2>Build Linearized Model<a name="3"></a></h2><p>Get Equilibrium Values</p><pre class="codeinput">[xequil,uequil] = trimmerFun(xguess,uguess,orient,inputs,printOn);
+
+<span class="keyword">if</span>(printOn)
+    printmat(xequil',<span class="string">'State Equilibrium (ft, rads, etc.)'</span>,[],<span class="keyword">...</span>
+        <span class="string">'Vt alpha beta phi theta psi p q r pn pe alt pow'</span>);
+    printmat(uequil',<span class="string">'Control Equilibrium (% &amp; degs)'</span>,[],<span class="keyword">...</span>
+        <span class="string">'throttle elevator aileron rudder'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Get Linearized Model</span>
+lin_f16 = getLinF16(xequil,uequil,printOn);
+</pre><pre class="codeoutput">------------------------------------------------------------
+Running trimmerFun.m
+
+Throttle (percent):            0.139462
+Elevator (deg):                -0.749578
+Ailerons (deg):                0
+Rudder (deg):                  0
+Angle of Attack (deg):         2.22738
+Sideslip Angle (deg):          0
+Pitch Angle (deg):             2.22738
+Bank Angle (deg):              0
+Normal Acceleration (g):       -0.998313
+Lateral Acceleration (g):      0
+Dynamic Pressure (psf):        290.886
+Mach Number:                   0.451119
+
+Initial Cost Function:         10.5418
+Final Cost Function:           2.87856e-10
+ 
+State Equilibrium (ft, rads, etc.) = 
+                        Vt        alpha         beta          phi        theta
+                 502.00000      0.03888            0            0      0.03888
+ 
+                       psi            p            q            r           pn
+                         0            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   1000.00000      9.05667
+ 
+ 
+Control Equilibrium (% &amp; degs) = 
+                  throttle     elevator      aileron       rudder
+                   0.13946     -0.74958            0            0
+ 
+------------------------------------------------------------
+Running jacobFun.m
+Linearized F-16 SS Model
+
+lin_f16 =
+ 
+  A = 
+                  Vt       alpha        beta         phi       theta
+   Vt       -0.01855       7.645  -7.784e-06  -3.123e-06      -32.17
+   alpha  -0.0002538     -0.9865   3.277e-06    -1.6e-06  -1.246e-05
+   beta            0           0     -0.3127     0.06403           0
+   phi             0           0           0           0           0
+   theta           0           0           0           0           0
+   psi             0           0           0           0           0
+   p               0           0      -30.05           0           0
+   q      -3.236e-13      0.7987           0           0           0
+   r               0           0         8.3           0           0
+   pn              1  -8.773e-06           0  -1.887e-06  -8.773e-06
+   pe              0           0         502      -19.51           0
+   alt             0        -502   7.105e-15   4.874e-06         502
+   pow             0           0           0           0           0
+ 
+                 psi           p           q           r          pn
+   Vt              0           0     -0.6169           0           0
+   alpha           0           0      0.9076           0           0
+   beta            0     0.03841           0     -0.9918           0
+   phi             0           1           0     0.03889           0
+   theta           0           0           1           0           0
+   psi             0           0           0       1.001           0
+   p               0      -3.568   0.0002627      0.6547           0
+   q               0  -8.795e-06      -1.047   -0.002858           0
+   r               0    -0.02643    0.002539     -0.4627           0
+   pn              0           0           0           0           0
+   pe            502           0           0           0           0
+   alt             0           0           0           0           0
+   pow             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Vt              0    1.95e-05      0.3921
+   alpha           0   1.877e-06  -3.038e-05
+   beta            0           0           0
+   phi             0           0           0
+   theta           0           0           0
+   psi             0           0           0
+   p               0           0           0
+   q               0   2.368e-15           0
+   r               0           0           0
+   pn              0           0           0
+   pe              0           0           0
+   alt             0           0           0
+   pow             0           0          -1
+ 
+  B = 
+           Throttle   Elevator    Aileron     Rudder
+   Vt             0     0.1661          0          0
+   alpha          0  -0.002089          0          0
+   beta           0          0  0.0002866  0.0007824
+   phi            0          0          0          0
+   theta          0          0          0          0
+   psi            0          0          0          0
+   p              0          0    -0.7125     0.1275
+   q              0    -0.1705          0          0
+   r              0          0   -0.03091   -0.06024
+   pn             0          0          0          0
+   pe             0          0          0          0
+   alt            0          0          0          0
+   pow        64.94          0          0          0
+ 
+  C = 
+                  Vt       alpha        beta         phi       theta
+   Az       0.003978       15.73  -5.296e-08           0           0
+   q               0           0           0           0           0
+   alpha           0           1           0           0           0
+   theta           0           0           0           0           1
+   Vt              1           0           0           0           0
+   Ay              0           0      -4.876           0           0
+   p               0           0           0           0           0
+   r               0           0           0           0           0
+   beta            0           0           1           0           0
+   phi             0           0           0           1           0
+ 
+                 psi           p           q           r          pn
+   Az              0  -4.096e-08      0.9523   -0.001336           0
+   q               0           0           1           0           0
+   alpha           0           0           0           0           0
+   theta           0           0           0           0           0
+   Vt              0           0           0           0           0
+   Ay              0   -0.007024           0       0.116           0
+   p               0           1           0           0           0
+   r               0           0           0           1           0
+   beta            0           0           0           0           0
+   phi             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Az              0  -2.926e-05           0
+   q               0           0           0
+   alpha           0           0           0
+   theta           0           0           0
+   Vt              0           0           0
+   Ay              0           0           0
+   p               0           0           0
+   r               0           0           0
+   beta            0           0           0
+   phi             0           0           0
+ 
+  D = 
+          Throttle  Elevator   Aileron    Rudder
+   Az            0  -0.04707         0         0
+   q             0         0         0         0
+   alpha         0         0         0         0
+   theta         0         0         0         0
+   Vt            0         0         0         0
+   Ay            0         0  0.004468    0.0122
+   p             0         0         0         0
+   r             0         0         0         0
+   beta          0         0         0         0
+   phi           0         0         0         0
+ 
+Name: Linearized F-16 SS Model
+Continuous-time state-space model.
+
+</pre><h2>Decouple Linearized F-16 Model: Isolate Longitudinal States &amp; Actuators<a name="4"></a></h2><pre class="codeinput">A_long = lin_f16.a([2 8],[2 8]);        <span class="comment">% States:   alpha, q</span>
+B_long = lin_f16.b([2 8],2);            <span class="comment">% Inputs:   elevator</span>
+C_long = lin_f16.c([3 2 1],[2 8]);      <span class="comment">% Outputs:  alpha; q; Nz</span>
+D_long = lin_f16.d([3 2 1],2);          <span class="comment">% Inputs:   elevator</span>
+
+Atilde = [A_long zeros(2,1);            <span class="comment">% States:   alpha; q;</span>
+    C_long(3,:) 0];                     <span class="comment">%           Nz</span>
+Btilde = [B_long;
+    D_long(3,:)];                   <span class="comment">% Inputs:   elevator</span>
+</pre><h2>Select State &amp; Control Weights &amp; Penalties<a name="5"></a></h2><p>Set LQR weights Q: Penalty on State Error</p><pre class="codeinput">q_alpha = 1000;
+q_q = 0;
+q_Nz = 1500;
+
+<span class="comment">% R: Penalty on Control Effort</span>
+r_elevator = 1;
+</pre><h2>Calculate Longitudinal Short Period LQR Gains<a name="6"></a></h2><pre class="codeinput">K_long = lqr(Atilde,Btilde,diag([q_alpha q_q q_Nz]), r_elevator);
+printmat(K_long,<span class="string">'LQR Gains'</span>,<span class="string">'elevator'</span>,<span class="keyword">...</span>
+    <span class="string">'alpha q int_e_Nz'</span>);
+</pre><pre class="codeoutput"> 
+LQR Gains = 
+                     alpha            q     int_e_Nz
+     elevator   -156.88015    -31.03701    -38.72983
+ 
+</pre><h2>Build State Space Models of Longitudinal F-16<a name="7"></a></h2><p>My ss_asp (with elevator commanded as an output state)</p><pre class="codeinput">ss_plant=ss(A_long,B_long,<span class="keyword">...</span>
+    [C_long; 0 0],[D_long; deg2rad(1)]);       <span class="comment">% Uncontrolled SS model</span>
+ss_plant.StateName={<span class="string">'alpha'</span>,<span class="string">'q'</span>};
+ss_plant.u=<span class="string">'elevator'</span>;                      <span class="comment">% Inputs:   elevator</span>
+ss_plant.y={<span class="string">'alpha'</span>,<span class="string">'q'</span>,<span class="string">'Nz'</span>,<span class="string">'ele_out'</span>};    <span class="comment">% Outputs:  alpha, q, Nz, ele_out</span>
+
+ss_Kx=ss(0,[0 0],0,K_long(1:2));     <span class="comment">% Pass through gains for alpha, q</span>
+ss_Kx.u={<span class="string">'alpha'</span>,<span class="string">'q'</span>};          <span class="comment">% Inputs:   alpha, q</span>
+ss_Kx.y=<span class="string">'Kx'</span>;                   <span class="comment">% Outputs:  Elevator control from alpha, q</span>
+
+de_cmd=sumblk(<span class="string">'elevator=-Kx-Kint_e_Nz'</span>);
+
+<span class="comment">% Integral control on Nz error</span>
+ss_Kint_Nz=ss(0,1,K_long(3),0);
+ss_Kint_Nz.u=<span class="string">'e_Nz'</span>;                 <span class="comment">% Inputs:   Nz error</span>
+ss_Kint_Nz.y={<span class="string">'Kint_e_Nz'</span>};          <span class="comment">% Outputs:  K_i*int_e_Nz</span>
+ss_Kint_Nz.StateName = <span class="string">'int_e_Nz'</span>;
+
+error=sumblk(<span class="string">'e_Nz=-Nz_cmd+Nz'</span>);
+
+sys_cl_long=connect(ss_plant,ss_Kx,de_cmd,ss_Kint_Nz,error,<span class="keyword">...</span>
+    <span class="string">'Nz_cmd'</span>,{<span class="string">'alpha'</span>,<span class="string">'q'</span>,<span class="string">'Nz'</span>,<span class="string">'e_Nz'</span>,<span class="string">'ele_out'</span>});
+
+OLTF = connect(ss_plant,ss_Kx,de_cmd,-ss_Kint_Nz,<span class="keyword">...</span>
+    <span class="string">'e_Nz'</span>,{<span class="string">'alpha'</span>,<span class="string">'q'</span>,<span class="string">'Nz'</span>,<span class="string">'ele_out'</span>});
+sys_cl_long
+</pre><pre class="codeoutput">
+sys_cl_long =
+ 
+  A = 
+                alpha         q  int_e_Nz
+   alpha       -1.314    0.8428  -0.08089
+   q           -25.95    -6.338    -6.602
+   int_e_Nz     8.345   -0.5087    -1.823
+ 
+  B = 
+             Nz_cmd
+   alpha          0
+   q              0
+   int_e_Nz      -1
+ 
+  C = 
+               alpha         q  int_e_Nz
+   alpha           1         0         0
+   q               0         1         0
+   Nz          8.345   -0.5087    -1.823
+   e_Nz        8.345   -0.5087    -1.823
+   ele_out     2.738    0.5417     0.676
+ 
+  D = 
+            Nz_cmd
+   alpha         0
+   q             0
+   Nz            0
+   e_Nz         -1
+   ele_out       0
+ 
+Continuous-time state-space model.
+
+</pre><h2>Compare Margins, Damping Ratios, and Pole Frequencies<a name="8"></a></h2><pre class="codeinput">figure(1);
+margin(OLTF(3,1))
+
+<span class="comment">% View Damping Ratio &amp; Frequency of Poles</span>
+damp(eig(sys_cl_long.a))
+<span class="comment">% [Wn,zeta] = damp(eig(sys_cl_long.a))</span>
+<span class="comment">% Note: Wn is the natural frequency (aim for 3 rad/s)</span>
+<span class="comment">%       zeta is the damping ratio   (aim for 0.707)</span>
+
+figure(2);
+<span class="comment">% step(sys_cl_sp)</span>
+opt = stepDataOptions(<span class="string">'StepAmplitude'</span>,1);
+step(sys_cl_long,3,opt)
+
+save(<span class="string">'longitudinalCtrlData.mat'</span>,<span class="string">'K_long'</span>,<span class="string">'sys_cl_long'</span>);
+printmat(K_long,<span class="string">'LQR Gains'</span>,<span class="string">'elevator'</span>,<span class="keyword">...</span>
+    <span class="string">'alpha q int_e_Nz'</span>);
+</pre><pre class="codeoutput">                                                                        
+         Pole              Damping       Frequency       Time Constant  
+                                       (rad/TimeUnit)     (TimeUnit)    
+                                                                        
+ -2.09e+00 + 3.87e+00i     4.75e-01       4.40e+00          4.79e-01    
+ -2.09e+00 - 3.87e+00i     4.75e-01       4.40e+00          4.79e-01    
+ -5.30e+00                 1.00e+00       5.30e+00          1.89e-01    
+ 
+LQR Gains = 
+                     alpha            q     int_e_Nz
+     elevator   -156.88015    -31.03701    -38.72983
+ 
+</pre><img vspace="5" hspace="5" src="BuildLongitudinalLqrCtrl_01.png" alt=""> <img vspace="5" hspace="5" src="BuildLongitudinalLqrCtrl_02.png" alt=""> <h2>Citations<a name="9"></a></h2><p>Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson. Aircraft control and simulation: dynamics, controls design, and autonomous systems. John Wiley &amp; Sons, 2015.</p><p>Liebst, Bradley S., AFIT</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% Determines the gains for a decoupled F-16 Linear Quadratic Regulator 
+% for the Stevens & Lewis mathematical model of the F-16 aircraft at a
+% specified trim point. The lateral and longitudinal modes of the F-16 are
+% decoupled. This script builds the longitudinal controller based on 
+% specified weights on state error and control effort and trim point.
+%
+% <a href="https://github.com/pheidlauf/AeroBenchVV">AeroBenchVV</a>
+% Copyright: GNU General Public License 2017
+%
+% See also: BUILDLATERALLQRCTRL, CONTROLLEDF16
+
+%% Initialize Starting Variables
+close all; clear; clc;
+addpath(genpath('F16_Model')); % Add necessary sub folder to path
+
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+disp('Longitudinal F-16 Controller for Nz tracking');
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+disp('MANUAL INPUTS:');
+
+% SET THESE VALUES MANUALLY
+altg = 1000;    % Altitude guess (ft msl)
+Vtg = 502;      % Velocity guess (ft/sec)
+phig = 0;       % Roll angle from horizontal guess (deg)
+thetag = 0;     % Pitch angle guess (deg)
+% Note: If a gain-scheduled controller is desired, the above values would
+% be varied for each desired trim point.
+
+xguess = [Vtg 0 0 phig thetag 0 0 0 0 0 0 altg 0];
+
+% u = [throttle elevator aileron rudder]
+uguess = [.2 0 0 0];
+
+% Orientation for Linearization
+% 1:    Wings Level (gamma = 0)
+% 2:    Wings Level (gamma <> 0)
+% 3:    Constant Altitude Turn
+% 4:    Steady Pull Up
+orient = 4;
+inputs = [xguess(1), xguess(12), 0, 0, 0];
+printOn = true;
+
+if(printOn)
+    disp('trimmerFun Inputs:');
+    printmat(inputs,'inputs',[],'Vt h gamma psidot thetadot')
+    fprintf('Orientation Used: ');
+    switch orient
+        case 1
+            disp('Wings Level (gamma = 0)');
+        case 2
+            disp('Wings Level (gamme <> 0)');
+        case 3
+            disp('Constant Altitude Turn');
+        case 4
+            disp('Steady Pull Up');
+        otherwise
+            error('orient invalid');
+    end
+    printmat(xguess,'State Guess',[],...
+        'Vt alpha beta phi theta psi p q r pn pe alt pow');
+    printmat(uguess,'Control Guess',[],...
+        'throttle elevator aileron rudder');
+end
+
+%% Build Linearized Model
+% Get Equilibrium Values
+[xequil,uequil] = trimmerFun(xguess,uguess,orient,inputs,printOn);
+
+if(printOn)
+    printmat(xequil','State Equilibrium (ft, rads, etc.)',[],...
+        'Vt alpha beta phi theta psi p q r pn pe alt pow');
+    printmat(uequil','Control Equilibrium (% & degs)',[],...
+        'throttle elevator aileron rudder');
+end
+
+% Get Linearized Model
+lin_f16 = getLinF16(xequil,uequil,printOn);
+
+%% Decouple Linearized F-16 Model: Isolate Longitudinal States & Actuators
+A_long = lin_f16.a([2 8],[2 8]);        % States:   alpha, q
+B_long = lin_f16.b([2 8],2);            % Inputs:   elevator
+C_long = lin_f16.c([3 2 1],[2 8]);      % Outputs:  alpha; q; Nz
+D_long = lin_f16.d([3 2 1],2);          % Inputs:   elevator
+
+Atilde = [A_long zeros(2,1);            % States:   alpha; q;
+    C_long(3,:) 0];                     %           Nz
+Btilde = [B_long;
+    D_long(3,:)];                   % Inputs:   elevator
+
+
+%% Select State & Control Weights & Penalties
+% Set LQR weights
+% Q: Penalty on State Error
+q_alpha = 1000;
+q_q = 0;
+q_Nz = 1500;
+
+% R: Penalty on Control Effort
+r_elevator = 1;
+
+%% Calculate Longitudinal Short Period LQR Gains
+K_long = lqr(Atilde,Btilde,diag([q_alpha q_q q_Nz]), r_elevator);
+printmat(K_long,'LQR Gains','elevator',...
+    'alpha q int_e_Nz');
+
+%% Build State Space Models of Longitudinal F-16    
+% My ss_asp (with elevator commanded as an output state)
+ss_plant=ss(A_long,B_long,...
+    [C_long; 0 0],[D_long; deg2rad(1)]);       % Uncontrolled SS model
+ss_plant.StateName={'alpha','q'};
+ss_plant.u='elevator';                      % Inputs:   elevator
+ss_plant.y={'alpha','q','Nz','ele_out'};    % Outputs:  alpha, q, Nz, ele_out
+
+ss_Kx=ss(0,[0 0],0,K_long(1:2));     % Pass through gains for alpha, q
+ss_Kx.u={'alpha','q'};          % Inputs:   alpha, q
+ss_Kx.y='Kx';                   % Outputs:  Elevator control from alpha, q
+
+de_cmd=sumblk('elevator=-Kx-Kint_e_Nz');
+
+% Integral control on Nz error
+ss_Kint_Nz=ss(0,1,K_long(3),0);
+ss_Kint_Nz.u='e_Nz';                 % Inputs:   Nz error
+ss_Kint_Nz.y={'Kint_e_Nz'};          % Outputs:  K_i*int_e_Nz
+ss_Kint_Nz.StateName = 'int_e_Nz';
+
+error=sumblk('e_Nz=-Nz_cmd+Nz');
+
+sys_cl_long=connect(ss_plant,ss_Kx,de_cmd,ss_Kint_Nz,error,...
+    'Nz_cmd',{'alpha','q','Nz','e_Nz','ele_out'});
+
+OLTF = connect(ss_plant,ss_Kx,de_cmd,-ss_Kint_Nz,...
+    'e_Nz',{'alpha','q','Nz','ele_out'});
+sys_cl_long
+
+%% Compare Margins, Damping Ratios, and Pole Frequencies
+figure(1);
+margin(OLTF(3,1))
+
+% View Damping Ratio & Frequency of Poles
+damp(eig(sys_cl_long.a))
+% [Wn,zeta] = damp(eig(sys_cl_long.a))
+% Note: Wn is the natural frequency (aim for 3 rad/s)
+%       zeta is the damping ratio   (aim for 0.707)
+
+figure(2);
+% step(sys_cl_sp)
+opt = stepDataOptions('StepAmplitude',1);
+step(sys_cl_long,3,opt)
+
+save('longitudinalCtrlData.mat','K_long','sys_cl_long');
+printmat(K_long,'LQR Gains','elevator',...
+    'alpha q int_e_Nz');
+
+%% Citations
+% Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson.
+% Aircraft control and simulation: dynamics, controls design, and
+% autonomous systems. John Wiley & Sons, 2015.
+%
+% Liebst, Bradley S.,
+% AFIT
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,62 @@
+%% Comments Copied from Script Format
+% Variable Definitions and Common Units
+%
+%   x_f16 States:
+%       x_f16(1)  = air speed, VT (300 ft/s to 900 ft/s)        (ft/s)
+%       x_f16(2)  = angle of attack, alpha (-0.174 to 0.785)    (rad)
+%       x_f16(3)  = angle of sideslip, beta                     (rad)
+%       x_f16(4)  = roll angle, phi                             (rad)
+%       x_f16(5)  = pitch angle, theta                          (rad)
+%       x_f16(6)  = yaw angle, psi                              (rad)
+%       x_f16(7)  = roll rate, P                                (rad/s)
+%       x_f16(8)  = pitch rate, Q                               (rad/s)
+%       x_f16(9)  = yaw rate, R                                 (rad/s)
+%       x_f16(10) = northward horizontal displacement, pn       (ft)
+%       x_f16(11) = eastward horizontal displacement, pe        (ft)
+%       x_f16(12) = altitude, h                                 (ft)
+%       x_f16(13) = engine thrust dynamics lag state, pow       (lbf)
+%       ---------------------------------------------------------------
+%       x_f16(14) = Integral of Nz error, Nz_e_i                (g's)
+%       x_f16(15) = Integral of Ps_error, Ps_e_i                (rad/sec)
+%       x_f16(16) = Integral of Ny_error, Ny_e_i                (g's)
+%
+%   F-16 controls:
+%       u(1) = throttle command                                 (%/100)
+%       u(2) = elevator command                                 (rad)
+%       u(3) = aileron command                                  (rad)
+%       u(4) = rudder command                                   (rad)
+%       ---------------------------------------------------------------
+%  Commanded states in control vector:
+%       u(5) = Nz commanded                                     (g's)
+%       u(6) = roll rate commanded                              (rad/s)
+%       u(7) = Ny+r commanded                                   (g's)
+%
+%   State & Actuator Limits:
+%       x_f16(1)    = air speed, VT     300 ft/s to 900 ft/s
+%       x_f16(2)    = AoA, alpha        -10 degrees to 45 degrees
+%       x_f16(13)   = thrust, pow       1000 lbs to 19000 lbs
+%       u(1)        = throttle          0 (0%) to 1 (100%)
+%       u(2)        = elevator          -25 deg to 25 deg
+%       u(3)        = aileron           -21.5 deg to 21.5 deg
+%       u(4)        = rudder            -30 deg to 30 deg
+%
+%   Comments about units:
+%
+%   The original F-16 Model from Stevens & Lewis is implemented with mixed
+%   units, where states are tracked in rads, inputted and outputted in
+%   degs, and where controls are tracked in degs, and inputted, tracked,
+%   and outputted in degs.
+%
+%   For the sake of clarity, this script has "wrapped" the F-16 simulation.
+%   all inputted, tracked, and outputted states & controls are in common
+%   units:
+%       All N-forces:                   g's
+%       All distances & speeds:         feet and seconds
+%       All angular measurements:       radians and seconds
+%       Throttle:                       percent/100, (values from 0 to 1)
+%       Thrust:                         lbf
+%
+%   In the plots, the results are shown in degrees (for easier
+%   visualization by the user).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

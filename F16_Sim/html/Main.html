@@ -1,0 +1,480 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Main</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-21"><meta name="DC.source" content="Main.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Set Initial Conditions</a></li><li><a href="#3">Set Flight &amp; Ctrl Limits (for pass-fail conditions)</a></li><li><a href="#4">Build Initial Condition Vectors</a></li><li><a href="#5">Select Desired F-16 Plant</a></li><li><a href="#6">Save results</a></li></ul></div><pre class="codeinput"><span class="comment">% Configures the settings for, runs, and saves an F-16 simulation.</span>
+<span class="comment">% Within this script, the user inputs all initial conditions and autopilot</span>
+<span class="comment">% instructions for a given simulation scenario. This is the only function</span>
+<span class="comment">% that must be to complete a simulation and save the results. The scripts</span>
+<span class="comment">% MakeAnimation and MakePicture can then be run and operate from the</span>
+<span class="comment">% results in the workspace.</span>
+<span class="comment">%</span>
+<span class="comment">% Copyright: GNU General Public License 2017</span>
+<span class="comment">% &lt;a href="https://github.com/pheidlauf/AeroBenchVV"&gt;AeroBenchVV&lt;/a&gt;</span>
+<span class="comment">%</span>
+<span class="comment">% See also: RUNF16SIM, GETDEFAULTSETTINGS, MAKEANIMATION, MAKEPICTURE,</span>
+</pre><h2>Set Initial Conditions<a name="2"></a></h2><pre class="codeinput">close <span class="string">all</span>; clear; clc;
+powg = 9;                   <span class="comment">% Power</span>
+
+<span class="comment">% Default alpha &amp; beta</span>
+alphag = deg2rad(2.1215);   <span class="comment">% Trim Angle of Attack (rad)</span>
+betag = 0;                  <span class="comment">% Side slip angle (rad)</span>
+
+<span class="comment">% Initial Attitude (for simpleGCAS)</span>
+altg = 3500;
+Vtg = 540;                  <span class="comment">% Pass at Vtg = 540;    Fail at Vtg = 550;</span>
+phig = (pi/2)*0.5;          <span class="comment">% Roll angle from wings level (rad)</span>
+thetag = (-pi/2)*0.8;       <span class="comment">% Pitch angle from nose level (rad)</span>
+psig = -pi/4;               <span class="comment">% Yaw angle from North (rad)</span>
+t_vec = 0:0.01:15;          <span class="comment">% Time vector for simulation output</span>
+
+<span class="comment">% Initial Attitude (for trackToHeading)</span>
+<span class="comment">% altg = 500;</span>
+<span class="comment">% Vtg = 502;</span>
+<span class="comment">% phig = 0;</span>
+<span class="comment">% thetag = alphag;</span>
+<span class="comment">% psig = deg2rad(-135);       % Yaw angle;</span>
+<span class="comment">% t_vec = 0:0.01:30;</span>
+
+<span class="comment">% Initial Attitude (for steadyLevelFlightHold)</span>
+<span class="comment">% phig = deg2rad(10);                 % Roll angle;</span>
+<span class="comment">% thetag = alphag - deg2rad(10);      % Pitch angle;</span>
+<span class="comment">% psig = deg2rad(-15);                % Yaw angle;</span>
+<span class="comment">% t_vec = 0:0.01:15;</span>
+</pre><h2>Set Flight &amp; Ctrl Limits (for pass-fail conditions)<a name="3"></a></h2><pre class="codeinput">[flightLimits,ctrlLimits,autopilot] = getDefaultSettings()
+ctrlLimits.ThrottleMax = 0.7;   <span class="comment">% Limit to Mil power (no afterburner)</span>
+autopilot.simpleGCAS = true;    <span class="comment">% Run GCAS simulation</span>
+</pre><pre class="codeoutput">
+flightLimits = 
+
+      altitudeMin: 0
+      altitudeMax: 10000
+     maneuverTime: 15
+            NzMax: 9
+            NzMin: -2
+    psMaxAccelDeg: 500
+             vMin: 300
+             vMax: 900
+      alphaMinDeg: -10
+      alphaMaxDeg: 45
+       betaMaxDeg: 30
+
+
+ctrlLimits = 
+
+       ThrottleMax: 1
+       ThrottleMin: 0
+    ElevatorMaxDeg: 25
+    ElevatorMinDeg: -25
+     AileronMaxDeg: 21.500000000000000
+     AileronMinDeg: -21.500000000000000
+      RudderMaxDeg: 30
+      RudderMinDeg: -30
+        MaxBankDeg: 60
+             NzMax: 6
+             NzMin: -1
+
+
+autopilot = 
+
+                    title: 'Default Simulation'
+        basicSpeedControl: 1
+    steadyLevelFlightHold: 0
+         levelTurnControl: 0
+               simpleGCAS: 0
+            turnToHeading: 0
+     timeTriggeredControl: 0
+
+</pre><h2>Build Initial Condition Vectors<a name="4"></a></h2><p>state = [VT, alpha, beta, phi, theta, psi, P, Q, R, pn, pe, h, pow]</p><pre class="codeinput">initialState = [Vtg alphag betag phig thetag psig 0 0 0 0 0 altg powg];
+orient = 4;             <span class="comment">% Orientation for trim</span>
+analysisOn = true;
+printOn = true;
+plotOn = true;
+</pre><h2>Select Desired F-16 Plant<a name="5"></a></h2><p>Table Lookup [output, passFail] = RunF16Sim(initialState, t_vec, orient, 'stevens',...     flightLimits, ctrlLimits, autopilot, printOn, plotOn);</p><pre class="codeinput"><span class="comment">% Polynomial</span>
+[output, passFail] = RunF16Sim(initialState, t_vec, orient, <span class="string">'morelli'</span>,<span class="keyword">...</span>
+    flightLimits, ctrlLimits, autopilot, analysisOn, printOn, plotOn);
+</pre><pre class="codeoutput">------------------------------------------------------------
+F-16 Decoupled LQR Controller for Nz, P_s, and Ny+r tracking
+------------------------------------------------------------
+ 
+Operator Inputs = 
+                        Vt            h        gamma       psidot     thetadot
+                 540.00000   3500.00000            0            0            0
+ 
+Trim Orientation Selected:   Steady Pull Up
+ 
+Inititial Conditions = 
+                        Vt        alpha         beta          phi        theta
+                 540.00000      0.03703            0      0.78540     -1.25664
+ 
+                       psi            p            q            r           pn
+                  -0.78540            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   3500.00000      9.00000
+ 
+ 
+Control Guess = 
+                  throttle     elevator      aileron       rudder
+                   0.20000            0            0            0
+ 
+------------------------------------------------------------
+Equilibrium / Trim Conditions
+ 
+State Equilibrium = 
+                        Vt        alpha         beta          phi        theta
+                 540.00000      0.03441            0            0      0.03441
+ 
+                       psi            p            q            r           pn
+                         0            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   3500.00000     10.35403
+ 
+ 
+Control Equilibrium = 
+                  throttle     elevator      aileron       rudder
+                   0.15944     -0.77048            0            0
+ 
+------------------------------------------------------------
+Running jacobFun.m
+Linearized F-16 SS Model
+
+lin_f16 =
+ 
+  A = 
+                  Vt       alpha        beta         phi       theta
+   Vt       -0.01658        10.6  -8.377e-06  -2.766e-06      -32.17
+   alpha  -0.0002195     -0.9855   3.055e-06  -1.488e-06  -1.025e-05
+   beta            0           0     -0.3124     0.05954           0
+   phi             0           0           0           0           0
+   theta           0           0           0           0           0
+   psi             0           0           0           0           0
+   p               0           0       -31.6           0           0
+   q       6.662e-13       0.858           0           0           0
+   r               0           0       8.904           0           0
+   pn              1  -6.607e-06           0  -1.592e-06  -6.607e-06
+   pe              0           0         540      -18.58           0
+   alt    -6.579e-16        -540           0    4.64e-06         540
+   pow             0           0           0           0           0
+ 
+                 psi           p           q           r          pn
+   Vt              0           0     -0.4842           0           0
+   alpha           0           0      0.9146           0           0
+   beta            0     0.03387           0     -0.9925           0
+   phi             0           1           0     0.03443           0
+   theta           0           0           1           0           0
+   psi             0           0           0       1.001           0
+   p               0      -3.574   0.0002627      0.6331           0
+   q               0  -8.795e-06      -1.045   -0.002858           0
+   r               0    -0.02249    0.002539     -0.4621           0
+   pn              0           0           0           0           0
+   pe            540           0           0           0           0
+   alt             0           0           0           0           0
+   pow             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Vt              0    3.81e-05      0.3717
+   alpha           0   1.774e-06   -2.37e-05
+   beta            0           0           0
+   phi             0           0           0
+   theta           0           0           0
+   psi             0           0           0
+   p               0           0           0
+   q               0  -5.338e-15           0
+   r               0           0           0
+   pn              0           0           0
+   pe              0           0           0
+   alt             0           0           0
+   pow             0           0          -1
+ 
+  B = 
+           Throttle   Elevator    Aileron     Rudder
+   Vt             0     0.1848          0          0
+   alpha          0  -0.002085          0          0
+   beta           0          0  0.0002863  0.0007816
+   phi            0          0          0          0
+   theta          0          0          0          0
+   psi            0          0          0          0
+   p              0          0     -0.765     0.1376
+   q              0    -0.1833          0          0
+   r              0          0   -0.03332   -0.06472
+   pn             0          0          0          0
+   pe             0          0          0          0
+   alt            0          0          0          0
+   pow        64.94          0          0          0
+ 
+  C = 
+                  Vt       alpha        beta         phi       theta
+   Az       0.003698        16.9  -5.296e-08           0           0
+   q               0           0           0           0           0
+   alpha           0           1           0           0           0
+   theta           0           0           0           0           1
+   Vt              1           0           0           0           0
+   Ay              0           0       -5.24           0           0
+   p               0           0           0           0           0
+   r               0           0           0           0           0
+   beta            0           0           1           0           0
+   phi             0           0           0           1           0
+ 
+                 psi           p           q           r          pn
+   Az              0    -4.1e-08      0.9454   -0.001336           0
+   q               0           0           1           0           0
+   alpha           0           0           0           0           0
+   theta           0           0           0           0           0
+   Vt              0           0           0           0           0
+   Ay              0   -0.008953           0      0.1154           0
+   p               0           1           0           0           0
+   r               0           0           0           1           0
+   beta            0           0           0           0           0
+   phi             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Az              0  -2.979e-05           0
+   q               0           0           0
+   alpha           0           0           0
+   theta           0           0           0
+   Vt              0           0           0
+   Ay              0           0           0
+   p               0           0           0
+   r               0           0           0
+   beta            0           0           0
+   phi             0           0           0
+ 
+  D = 
+          Throttle  Elevator   Aileron    Rudder
+   Az            0  -0.05062         0         0
+   q             0         0         0         0
+   alpha         0         0         0         0
+   theta         0         0         0         0
+   Vt            0         0         0         0
+   Ay            0         0  0.004801   0.01311
+   p             0         0         0         0
+   r             0         0         0         0
+   beta          0         0         0         0
+   phi           0         0         0         0
+ 
+Name: Linearized F-16 SS Model
+Continuous-time state-space model.
+
+ 
+Decoupled LQR Controller Gains = 
+                     alpha            q         Nz_i         beta            p
+     elevator   -156.88015    -31.03701    -38.72983            0            0
+      aileron            0            0            0     38.02751     -5.65497
+       rudder            0            0            0     17.56400      1.58391
+ 
+                         r         ps_i       Ny_r_i
+     elevator            0            0            0
+      aileron    -14.08804    -34.06416     -9.95406
+       rudder    -41.43509      6.29550    -53.86016
+ 
+------------------------------------------------------------
+Running Nonlinear Simulation in ODE45
+
+Simulation Complete
+Time to simulate (MM:SS.ms):
+00:00.866
+
+Begin back-calculation of controls
+Back-Calculation of Controls Complete
+Time to calculate (MM:SS.ms):
+00:10.103
+
+Begin struct generation &amp; pass/fail analysis
+Pass/Fail Analysis Complete
+Time to calculate (MM:SS.ms):
+00:00.002
+
+----------------------------------------------------------
+RESULTS:
+              Min &amp; Max Values:
+Min Altitude:             96.178   ft 
+Altitude Lost:          3403.822   ft 
+Min Airspeed:            540.000   ft/sec 
+Max Airspeed:            639.104   ft/sec 
+Max Down Force:            5.222   g's 
+Min Down Force:           -0.426   g's 
+Max Side Force:            0.061   g's 
+Max Roll Accel:          233.522   deg/sec^2 
+
+              Maneuver Event Times:
+Maneuver Start:            2.000   sec 
+Checkpoint  1:             3.395   sec 
+Maneuver Complete:         8.000   sec 
+Final Time:               15.000   sec 
+(if Checkpoint 2 &lt; Checkpoint 1, it is due to ODE45
+stepping backwards in time)
+
+              F-16 Attitude at Start:
+Roll   (phi):             45.000   deg 
+Pitch  (theta):          -72.000   deg 
+Yaw    (psi):            -45.000   deg 
+
+              F-16 Attitude at End:
+Roll   (phi):             -0.000   deg 
+Pitch  (theta):            2.249   deg 
+Yaw    (psi):            -33.514   deg 
+
+              Pass Fail Conditions:
+           stable: 1
+         airspeed: 1
+            alpha: 1
+             beta: 1
+               Nz: 1
+    psMaxAccelDeg: 1
+         altitude: 1
+     maneuverTime: 1
+
+----------------------------------------------------------
+Begin plotting
+Plot Generation Complete
+Time to calculate (MM:SS.ms):
+00:01.883
+
+</pre><img vspace="5" hspace="5" src="Main_01.png" alt=""> <img vspace="5" hspace="5" src="Main_02.png" alt=""> <img vspace="5" hspace="5" src="Main_03.png" alt=""> <img vspace="5" hspace="5" src="Main_04.png" alt=""> <img vspace="5" hspace="5" src="Main_05.png" alt=""> <img vspace="5" hspace="5" src="Main_06.png" alt=""> <img vspace="5" hspace="5" src="Main_07.png" alt=""> <h2>Save results<a name="6"></a></h2><p>Save output to workspace</p><pre class="codeinput">save(<span class="string">'SimResults.mat'</span>,<span class="string">'output'</span>,<span class="string">'passFail'</span>);
+
+<span class="comment">% Generate Renderings using a modified version of flypath3d</span>
+<span class="comment">% MakePicture;</span>
+<span class="comment">% MakeAnimation;</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% Configures the settings for, runs, and saves an F-16 simulation.
+% Within this script, the user inputs all initial conditions and autopilot
+% instructions for a given simulation scenario. This is the only function
+% that must be to complete a simulation and save the results. The scripts
+% MakeAnimation and MakePicture can then be run and operate from the
+% results in the workspace.
+%
+% Copyright: GNU General Public License 2017
+% <a href="https://github.com/pheidlauf/AeroBenchVV">AeroBenchVV</a>
+%
+% See also: RUNF16SIM, GETDEFAULTSETTINGS, MAKEANIMATION, MAKEPICTURE,
+
+%% Set Initial Conditions
+close all; clear; clc;
+powg = 9;                   % Power
+
+% Default alpha & beta
+alphag = deg2rad(2.1215);   % Trim Angle of Attack (rad)
+betag = 0;                  % Side slip angle (rad)
+
+% Initial Attitude (for simpleGCAS)
+altg = 3500;
+Vtg = 540;                  % Pass at Vtg = 540;    Fail at Vtg = 550;
+phig = (pi/2)*0.5;          % Roll angle from wings level (rad)
+thetag = (-pi/2)*0.8;       % Pitch angle from nose level (rad)
+psig = -pi/4;               % Yaw angle from North (rad)     
+t_vec = 0:0.01:15;          % Time vector for simulation output
+
+% Initial Attitude (for trackToHeading)
+% altg = 500;
+% Vtg = 502;
+% phig = 0;
+% thetag = alphag;
+% psig = deg2rad(-135);       % Yaw angle;
+% t_vec = 0:0.01:30; 
+
+% Initial Attitude (for steadyLevelFlightHold)
+% phig = deg2rad(10);                 % Roll angle;
+% thetag = alphag - deg2rad(10);      % Pitch angle;
+% psig = deg2rad(-15);                % Yaw angle;
+% t_vec = 0:0.01:15;    
+
+
+%% Set Flight & Ctrl Limits (for pass-fail conditions)
+[flightLimits,ctrlLimits,autopilot] = getDefaultSettings()
+ctrlLimits.ThrottleMax = 0.7;   % Limit to Mil power (no afterburner)
+autopilot.simpleGCAS = true;    % Run GCAS simulation
+
+%% Build Initial Condition Vectors
+% state = [VT, alpha, beta, phi, theta, psi, P, Q, R, pn, pe, h, pow]
+initialState = [Vtg alphag betag phig thetag psig 0 0 0 0 0 altg powg];
+orient = 4;             % Orientation for trim
+analysisOn = true;
+printOn = true;
+plotOn = true;
+
+
+%% Select Desired F-16 Plant
+% Table Lookup
+% [output, passFail] = RunF16Sim(initialState, t_vec, orient, 'stevens',...
+%     flightLimits, ctrlLimits, autopilot, printOn, plotOn);
+
+% Polynomial
+[output, passFail] = RunF16Sim(initialState, t_vec, orient, 'morelli',...
+    flightLimits, ctrlLimits, autopilot, analysisOn, printOn, plotOn);
+
+%% Save results
+% Save output to workspace
+save('SimResults.mat','output','passFail');
+
+% Generate Renderings using a modified version of flypath3d
+% MakePicture;
+% MakeAnimation;
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,1588 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>RunF16Sim</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-21"><meta name="DC.source" content="RunF16Sim.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Check flightLimits against model requirements</a></li><li><a href="#4">Check ctrlLimits against model limits (user-proofing)</a></li><li><a href="#5">Get Trim / Equilibrium Conditions</a></li><li><a href="#6">Build Linear LQR Controller from Workspace Data</a></li><li><a href="#7">Simulate Using ODE Solver</a></li><li><a href="#8">Back-calculate &amp; format needed intermediate states</a></li><li><a href="#9">Save Results to Struct</a></li><li><a href="#10">Numeric Data Analysis</a></li><li><a href="#11">Calculate Pass/Fail Conditions</a></li><li><a href="#12">Print Values to Console</a></li><li><a href="#13">Create Plots</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [ simOut, passFail ] = RunF16Sim(initialState, t_vec, <span class="keyword">...</span>
+    orient,F16_model,flightLimits,ctrlLimits,autopilot, analysisOn, <span class="keyword">...</span>
+    printOn, plotOn)
+</pre><pre class="codeinput"><span class="comment">%Simulates and analyzes autonomous F-16 maneuvers using ode45</span>
+<span class="comment">%</span>
+<span class="comment">%   Function Calls:</span>
+<span class="comment">%       [ simOut ] = NonlinSim_F16_func(initialState, t_vec, orient, ...</span>
+<span class="comment">%                       plantModel, printOn, plotOn)</span>
+<span class="comment">%       [ simOut, passFail ] = NonlinSim_F16_func(initialState, ...</span>
+<span class="comment">%           0:0.01:15, 4, 'morelli', true, true)</span>
+<span class="comment">%</span>
+<span class="comment">%   Inputs:</span>
+<span class="comment">%       initialState - initial F-16 state vector in feet, rad, etc.</span>
+<span class="comment">%                       [Vt alpha beta phi theta psi P Q R pn pe h pow]</span>
+<span class="comment">%       t_vec    - desired time vector (1xN)</span>
+<span class="comment">%       orient   - desired trim condition (values 1, 2, 3, or 4)</span>
+<span class="comment">%                       1:    Wings Level (gamma = 0)</span>
+<span class="comment">%                       2:    Wings Level (gamma &lt;&gt; 0)</span>
+<span class="comment">%                       3:    Constant Altitude Turn</span>
+<span class="comment">%                       4:    Steady Pull Up</span>
+<span class="comment">%       F16_model - Optional string defining which function to use to</span>
+<span class="comment">%           calculate state derivatives: {'morelli','stevens','linear'}.</span>
+<span class="comment">%           Defaults to 'morelli'.</span>
+<span class="comment">%       flightLimits - struct of pass fail limits</span>
+<span class="comment">%       ctrlLimits - struct of control limits</span>
+<span class="comment">%       analysisOn - if true, runs full analysis on sim results. If false,</span>
+<span class="comment">%           only returns vector as output</span>
+<span class="comment">%       printOn  - if true, prints results to console</span>
+<span class="comment">%       plotOn   - if true, plots results in figures</span>
+<span class="comment">%</span>
+<span class="comment">%   Outputs:</span>
+<span class="comment">%       simOut  - structure of analyzed results</span>
+<span class="comment">%</span>
+<span class="comment">%   Comments:</span>
+<span class="comment">%   This is a functionalized version of "NonlinSim_F16", meant to be used</span>
+<span class="comment">%   for monte-carlo style simulations or analysis if needed. All of the</span>
+<span class="comment">%   calculations are the same. If this function is called with no</span>
+<span class="comment">%   arguments, it runs my default test case.</span>
+<span class="comment">%</span>
+<span class="comment">%   The outer-loop control methods implemented are contained in the</span>
+<span class="comment">%   function "getOuterLoopCtrl". If you desire to use hard-coded outer-loop</span>
+<span class="comment">%   control or maneuvers, or want to change the implementation of GCAS,</span>
+<span class="comment">%   that is the function which needs to be changed.</span>
+<span class="comment">%</span>
+<span class="comment">% &lt;a href="https://github.com/pheidlauf/AeroBenchVV"&gt;AeroBenchVV&lt;/a&gt;</span>
+<span class="comment">% Copyright: GNU General Public License 2017</span>
+<span class="comment">%</span>
+<span class="comment">% See also: CONTROLLEDF16, GETAUTOPILOTCOMMANDS, ODE45</span>
+
+<span class="comment">% If called with no arguments, run "Main.m".</span>
+<span class="keyword">if</span>(nargin==0)
+    Main;
+<span class="keyword">end</span>
+
+<span class="comment">% Check that enough arguments are given</span>
+<span class="keyword">if</span>(nargin&lt;7)
+    error(<span class="string">'Insufficient Arguments given'</span>)
+<span class="keyword">end</span>
+
+<span class="comment">% Default analysisOn to true</span>
+<span class="keyword">if</span>(~exist(<span class="string">'analysisOn'</span>,<span class="string">'var'</span>))
+    analysisOn = true;
+<span class="keyword">end</span>
+<span class="comment">% Default printOn to true</span>
+<span class="keyword">if</span>(~exist(<span class="string">'printOn'</span>,<span class="string">'var'</span>))
+    printOn = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Default plotOn to true</span>
+<span class="keyword">if</span>(~exist(<span class="string">'plotOn'</span>,<span class="string">'var'</span>))
+    plotOn = true;
+<span class="keyword">end</span>
+
+<span class="comment">% If true, runs the profiler for streamlining &amp; debugging</span>
+profilerOn = false;
+<span class="comment">% Start the clock to track processing time</span>
+timerStart = tic;
+<span class="comment">% Add necessary sub folder to path</span>
+addpath(genpath(<span class="string">'F16_Model'</span>));
+</pre><pre class="codeoutput">
+flightLimits = 
+
+      altitudeMin: 0
+      altitudeMax: 10000
+     maneuverTime: 15
+            NzMax: 9
+            NzMin: -2
+    psMaxAccelDeg: 500
+             vMin: 300
+             vMax: 900
+      alphaMinDeg: -10
+      alphaMaxDeg: 45
+       betaMaxDeg: 30
+
+
+ctrlLimits = 
+
+       ThrottleMax: 1
+       ThrottleMin: 0
+    ElevatorMaxDeg: 25
+    ElevatorMinDeg: -25
+     AileronMaxDeg: 21.500000000000000
+     AileronMinDeg: -21.500000000000000
+      RudderMaxDeg: 30
+      RudderMinDeg: -30
+        MaxBankDeg: 60
+             NzMax: 6
+             NzMin: -1
+
+
+autopilot = 
+
+                    title: 'Default Simulation'
+        basicSpeedControl: 1
+    steadyLevelFlightHold: 0
+         levelTurnControl: 0
+               simpleGCAS: 0
+            turnToHeading: 0
+     timeTriggeredControl: 0
+
+</pre><h2>Check flightLimits against model requirements<a name="3"></a></h2><p>Limit airspeed from 300 to 900 ft/s</p><pre class="codeinput"><span class="keyword">if</span>(flightLimits.vMin &lt; 300 || flightLimits.vMax &gt; 900)
+    error(<span class="string">'flightLimits: Airspeed limits outside model limits (300 to 900)'</span>);
+<span class="keyword">end</span>
+<span class="comment">% Limit alpha from -10 to 45 deg</span>
+<span class="keyword">if</span>(flightLimits.alphaMinDeg &lt; -10 || flightLimits.alphaMaxDeg &gt; 45)
+    error(<span class="string">'flightLimits: Alpha limits outside model limits (-10 to 45)'</span>);
+<span class="keyword">end</span>
+<span class="comment">% Limit beta from -30 to 30 deg (positive only, symmetric)</span>
+<span class="keyword">if</span>(abs(flightLimits.betaMaxDeg) &gt; 30)
+    error(<span class="string">'flightLimits: Beta limit outside model limits (30 deg)'</span>);
+<span class="keyword">end</span>
+</pre><h2>Check ctrlLimits against model limits (user-proofing)<a name="4"></a></h2><p>Limit throttle from 0 to 1</p><pre class="codeinput"><span class="keyword">if</span>(ctrlLimits.ThrottleMin &lt; 0 || ctrlLimits.ThrottleMax &gt; 1)
+    error(<span class="string">'ctrlLimits: Throttle Limits (0 to 1)'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Limit elevator from -25 to 25 deg</span>
+<span class="keyword">if</span>(ctrlLimits.ElevatorMaxDeg &gt; 25 || ctrlLimits.ElevatorMinDeg &lt; -25)
+    error(<span class="string">'ctrlLimits: Elevator Limits (-25 deg to 25 deg)'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Limit aileron from -21.5 to 21.5 deg</span>
+<span class="keyword">if</span>(ctrlLimits.AileronMaxDeg &gt; 21.5 || ctrlLimits.AileronMinDeg &lt; -21.5)
+    error(<span class="string">'ctrlLimits: Aileron Limits (-21.5 deg to 21.5 deg)'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Limit rudder from -30 to 30 deg</span>
+<span class="keyword">if</span>(ctrlLimits.RudderMaxDeg &gt; 30 || ctrlLimits.RudderMinDeg &lt; -30)
+    error(<span class="string">'ctrlLimits: Rudder Limits (-30 deg to 30 deg)'</span>);
+<span class="keyword">end</span>
+</pre><h2>Get Trim / Equilibrium Conditions<a name="5"></a></h2><pre class="codeinput"><span class="keyword">if</span>(printOn)
+    disp(<span class="string">'------------------------------------------------------------'</span>);
+    disp(<span class="string">'F-16 Decoupled LQR Controller for Nz, P_s, and Ny+r tracking'</span>);
+    disp(<span class="string">'------------------------------------------------------------'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Format initial Conditions for Simulation and append integral error states</span>
+x0 = [initialState'; 0; 0; 0];
+
+<span class="comment">% Define Control Guess</span>
+uguess = [.2 0 0 0];
+
+<span class="comment">% Format inputs for trimmerFun</span>
+inputs = [initialState(1), initialState(12), 0, 0, 0];
+
+<span class="keyword">if</span>(printOn)
+    printmat(inputs,<span class="string">'Operator Inputs'</span>,[],<span class="string">'Vt h gamma psidot thetadot'</span>)
+    fprintf(<span class="string">'Trim Orientation Selected:   '</span>);
+    <span class="keyword">switch</span> orient
+        <span class="keyword">case</span> 1
+            disp(<span class="string">'Wings Level (gamma = 0)'</span>);
+        <span class="keyword">case</span> 2
+            disp(<span class="string">'Wings Level (gamme &lt;&gt; 0)'</span>);
+        <span class="keyword">case</span> 3
+            disp(<span class="string">'Constant Altitude Turn'</span>);
+        <span class="keyword">case</span> 4
+            disp(<span class="string">'Steady Pull Up'</span>);
+        <span class="keyword">otherwise</span>
+            error(<span class="string">'Invalid Orientation for trimmerFun'</span>);
+    <span class="keyword">end</span>
+    printmat(initialState,<span class="string">'Inititial Conditions'</span>,[],<span class="keyword">...</span>
+        <span class="string">'Vt alpha beta phi theta psi p q r pn pe alt pow'</span>);
+    printmat(uguess,<span class="string">'Control Guess'</span>,[],<span class="keyword">...</span>
+        <span class="string">'throttle elevator aileron rudder'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Get Equilibrium Values</span>
+[xequil,uequil] = trimmerFun(initialState, uguess, orient, inputs, false);
+
+<span class="keyword">if</span>(printOn)
+    disp(<span class="string">'------------------------------------------------------------'</span>);
+    disp(<span class="string">'Equilibrium / Trim Conditions'</span>);
+    printmat(xequil',<span class="string">'State Equilibrium'</span>,[],<span class="keyword">...</span>
+        <span class="string">'Vt alpha beta phi theta psi p q r pn pe alt pow'</span>);
+    printmat(uequil',<span class="string">'Control Equilibrium'</span>,[],<span class="keyword">...</span>
+        <span class="string">'throttle elevator aileron rudder'</span>);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">------------------------------------------------------------
+F-16 Decoupled LQR Controller for Nz, P_s, and Ny+r tracking
+------------------------------------------------------------
+ 
+Operator Inputs = 
+                        Vt            h        gamma       psidot     thetadot
+                 540.00000   3500.00000            0            0            0
+ 
+Trim Orientation Selected:   Steady Pull Up
+ 
+Inititial Conditions = 
+                        Vt        alpha         beta          phi        theta
+                 540.00000      0.03703            0      0.78540     -1.25664
+ 
+                       psi            p            q            r           pn
+                  -0.78540            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   3500.00000      9.00000
+ 
+ 
+Control Guess = 
+                  throttle     elevator      aileron       rudder
+                   0.20000            0            0            0
+ 
+------------------------------------------------------------
+Equilibrium / Trim Conditions
+ 
+State Equilibrium = 
+                        Vt        alpha         beta          phi        theta
+                 540.00000      0.03441            0            0      0.03441
+ 
+                       psi            p            q            r           pn
+                         0            0            0            0            0
+ 
+                        pe          alt          pow
+                         0   3500.00000     10.35403
+ 
+ 
+Control Equilibrium = 
+                  throttle     elevator      aileron       rudder
+                   0.15944     -0.77048            0            0
+ 
+</pre><h2>Build Linear LQR Controller from Workspace Data<a name="6"></a></h2><pre class="codeinput"><span class="comment">% Get linearized ss-model (in case F16_method=='linear');</span>
+lin_f16 = getLinF16(xequil,uequil,printOn);
+
+<span class="comment">% Load Decoupled Controllers from workspace</span>
+load(<span class="string">'lateralCtrlData.mat'</span>)
+load(<span class="string">'longitudinalCtrlData.mat'</span>)
+
+<span class="comment">% Append decoupled LQR gain matrices</span>
+K_lqr = blkdiag(K_long, K_lat);
+<span class="keyword">if</span>(printOn)
+    printmat(K_lqr,<span class="string">'Decoupled LQR Controller Gains'</span>, <span class="keyword">...</span>
+        <span class="string">'elevator aileron rudder'</span>,<span class="keyword">...</span>
+        <span class="string">'alpha q Nz_i beta p r ps_i Ny_r_i'</span>);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">------------------------------------------------------------
+Running jacobFun.m
+Linearized F-16 SS Model
+
+lin_f16 =
+ 
+  A = 
+                  Vt       alpha        beta         phi       theta
+   Vt       -0.01658        10.6  -8.377e-06  -2.766e-06      -32.17
+   alpha  -0.0002195     -0.9855   3.055e-06  -1.488e-06  -1.025e-05
+   beta            0           0     -0.3124     0.05954           0
+   phi             0           0           0           0           0
+   theta           0           0           0           0           0
+   psi             0           0           0           0           0
+   p               0           0       -31.6           0           0
+   q       6.662e-13       0.858           0           0           0
+   r               0           0       8.904           0           0
+   pn              1  -6.607e-06           0  -1.592e-06  -6.607e-06
+   pe              0           0         540      -18.58           0
+   alt    -6.579e-16        -540           0    4.64e-06         540
+   pow             0           0           0           0           0
+ 
+                 psi           p           q           r          pn
+   Vt              0           0     -0.4842           0           0
+   alpha           0           0      0.9146           0           0
+   beta            0     0.03387           0     -0.9925           0
+   phi             0           1           0     0.03443           0
+   theta           0           0           1           0           0
+   psi             0           0           0       1.001           0
+   p               0      -3.574   0.0002627      0.6331           0
+   q               0  -8.795e-06      -1.045   -0.002858           0
+   r               0    -0.02249    0.002539     -0.4621           0
+   pn              0           0           0           0           0
+   pe            540           0           0           0           0
+   alt             0           0           0           0           0
+   pow             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Vt              0    3.81e-05      0.3717
+   alpha           0   1.774e-06   -2.37e-05
+   beta            0           0           0
+   phi             0           0           0
+   theta           0           0           0
+   psi             0           0           0
+   p               0           0           0
+   q               0  -5.338e-15           0
+   r               0           0           0
+   pn              0           0           0
+   pe              0           0           0
+   alt             0           0           0
+   pow             0           0          -1
+ 
+  B = 
+           Throttle   Elevator    Aileron     Rudder
+   Vt             0     0.1848          0          0
+   alpha          0  -0.002085          0          0
+   beta           0          0  0.0002863  0.0007816
+   phi            0          0          0          0
+   theta          0          0          0          0
+   psi            0          0          0          0
+   p              0          0     -0.765     0.1376
+   q              0    -0.1833          0          0
+   r              0          0   -0.03332   -0.06472
+   pn             0          0          0          0
+   pe             0          0          0          0
+   alt            0          0          0          0
+   pow        64.94          0          0          0
+ 
+  C = 
+                  Vt       alpha        beta         phi       theta
+   Az       0.003698        16.9  -5.296e-08           0           0
+   q               0           0           0           0           0
+   alpha           0           1           0           0           0
+   theta           0           0           0           0           1
+   Vt              1           0           0           0           0
+   Ay              0           0       -5.24           0           0
+   p               0           0           0           0           0
+   r               0           0           0           0           0
+   beta            0           0           1           0           0
+   phi             0           0           0           1           0
+ 
+                 psi           p           q           r          pn
+   Az              0    -4.1e-08      0.9454   -0.001336           0
+   q               0           0           1           0           0
+   alpha           0           0           0           0           0
+   theta           0           0           0           0           0
+   Vt              0           0           0           0           0
+   Ay              0   -0.008953           0      0.1154           0
+   p               0           1           0           0           0
+   r               0           0           0           1           0
+   beta            0           0           0           0           0
+   phi             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Az              0  -2.979e-05           0
+   q               0           0           0
+   alpha           0           0           0
+   theta           0           0           0
+   Vt              0           0           0
+   Ay              0           0           0
+   p               0           0           0
+   r               0           0           0
+   beta            0           0           0
+   phi             0           0           0
+ 
+  D = 
+          Throttle  Elevator   Aileron    Rudder
+   Az            0  -0.05062         0         0
+   q             0         0         0         0
+   alpha         0         0         0         0
+   theta         0         0         0         0
+   Vt            0         0         0         0
+   Ay            0         0  0.004801   0.01311
+   p             0         0         0         0
+   r             0         0         0         0
+   beta          0         0         0         0
+   phi           0         0         0         0
+ 
+Name: Linearized F-16 SS Model
+Continuous-time state-space model.
+
+ 
+Decoupled LQR Controller Gains = 
+                     alpha            q         Nz_i         beta            p
+     elevator   -156.88015    -31.03701    -38.72983            0            0
+      aileron            0            0            0     38.02751     -5.65497
+       rudder            0            0            0     17.56400      1.58391
+ 
+                         r         ps_i       Ny_r_i
+     elevator            0            0            0
+      aileron    -14.08804    -34.06416     -9.95406
+       rudder    -41.43509      6.29550    -53.86016
+ 
+</pre><h2>Simulate Using ODE Solver<a name="7"></a></h2><pre class="codeinput"><span class="keyword">if</span>(printOn)
+    disp(<span class="string">'------------------------------------------------------------'</span>);
+    disp(<span class="string">'Running Nonlinear Simulation in ODE45'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% USER EDIT: Set ode options if desired</span>
+options = [];
+
+<span class="comment">% Call ode45 to simulate controlled nonlinear system</span>
+[time,x_f16_hist] = ode45(@(t,y) controlledF16(t,y,xequil, uequil,<span class="keyword">...</span>
+    K_lqr, F16_model, lin_f16, flightLimits,ctrlLimits,autopilot),<span class="keyword">...</span>
+    t_vec, x0, options);
+
+<span class="comment">% Record time to complete simulation</span>
+t_simmed = toc(timerStart);
+
+<span class="keyword">if</span>(printOn)
+    fprintf(<span class="string">'\n'</span>);
+    disp(<span class="string">'Simulation Complete'</span>);
+    disp(<span class="string">'Time to simulate (MM:SS.ms):'</span>);
+    fprintf(<span class="string">'%s\n'</span>,datestr((t_simmed)/(24*60*60),<span class="string">'MM:SS.FFF'</span>))
+    fprintf(<span class="string">'\n'</span>);
+    disp(<span class="string">'Begin back-calculation of controls'</span>);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">------------------------------------------------------------
+Running Nonlinear Simulation in ODE45
+
+Simulation Complete
+Time to simulate (MM:SS.ms):
+00:00.731
+
+Begin back-calculation of controls
+</pre><h2>Back-calculate &amp; format needed intermediate states<a name="8"></a></h2><p>Format Output for easier indexing</p><pre class="codeinput">x_f16_hist = x_f16_hist';
+
+<span class="keyword">if</span>(~analysisOn)
+    simOut = x_f16_hist;
+    passFail = <span class="string">'NO ANALYSIS COMPLETED'</span>;
+    warning(<span class="string">'No analysis completed'</span>);
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Initialize "history" vectors</span>
+u_hist = zeros(7,length(time));         <span class="comment">% Control</span>
+Nz_hist = zeros(1,length(time));        <span class="comment">% Nz (full nonlinear calculation)</span>
+ps_hist = zeros(1,length(time));        <span class="comment">% ps (full nonlinear calculation)</span>
+Ny_r_hist = zeros(1,length(time));      <span class="comment">% Ny_r</span>
+lin_Nz_hist = zeros(1,length(time));    <span class="comment">% Nz (linear approximation)</span>
+lin_Ny_r_hist = zeros(1,length(time));    <span class="comment">% Ny (linear approximation)</span>
+
+<span class="comment">% Recall GCAS time steps from persistent memory of getAutopilotCommands</span>
+<span class="comment">% [~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil,...</span>
+<span class="comment">%     ctrlLimits, false);</span>
+[~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil, <span class="keyword">...</span>
+    flightLimits, ctrlLimits, autopilot, false);
+
+<span class="comment">% Reset Persistent Variables in getOuterLoopControl</span>
+<span class="comment">% getAutopilotCommands(0, x0, xequil, uequil, ctrlLimits, true);</span>
+getAutopilotCommands(0, x0, xequil, uequil, <span class="keyword">...</span>
+    flightLimits, ctrlLimits, autopilot, true);
+
+<span class="comment">%{
+</span><span class="comment">Note: Several important intermediate values are not outputted from ode45
+</span><span class="comment">automatically. Below, I use the outputted states and time vector to
+</span><span class="comment">recalculate the values and store them for data analysis and visualization.
+</span><span class="comment">Because ode45 integrates with an non-fixed time-step, the recalled &amp;
+</span><span class="comment">recalculated results may be slightly different. This primarily effects the
+</span><span class="comment">ps_ref and Nz_ref history.
+</span><span class="comment">%}
+</span>
+<span class="comment">% Back calculate controlled states for each time step</span>
+<span class="keyword">for</span> i = 1:length(time)
+    [~,u,Nz,ps,Ny_r] = controlledF16(time(i),x_f16_hist(:,i),<span class="keyword">...</span>
+        xequil, uequil, K_lqr, F16_model, lin_f16,<span class="keyword">...</span>
+        flightLimits, ctrlLimits, autopilot);
+    Nz_hist(i) = Nz;
+    ps_hist(i) = ps;
+    Ny_r_hist(i) = Ny_r;
+    u_hist(:,i) = u;
+
+    <span class="comment">% Linear approx of Nz</span>
+    lin_Nz_hist(i) = (lin_f16.c(1,:)*(x_f16_hist(1:13,i) - xequil)+ <span class="keyword">...</span>
+        lin_f16.d(1,:)*(u(1:4) + uequil));
+    <span class="comment">%     lin_Nz_hist(i) = (lin_f16.c(1,:)*(x_f16_hist(1:13,i)) + ...</span>
+    <span class="comment">%         lin_f16.d(1,:)*(u(1:4)));</span>
+
+    <span class="comment">% Linear approx of (Ny + r)</span>
+    lin_Ny_r_hist(i) = (lin_f16.c(6,:)*(x_f16_hist(1:13,i)-xequil)+<span class="keyword">...</span>
+        lin_f16.d(6,:)*(u(1:4) + uequil)) + x_f16_hist(9,i);
+<span class="keyword">end</span>
+
+<span class="comment">% Determine ps acceleration (rad/s/s)</span>
+ps_accels = zeros(1,length(ps_hist));
+ps_accels(1) = 1;
+<span class="keyword">for</span> i = 2:length(ps_hist)
+    ps_accels(i) = (ps_hist(i) - ps_hist(i-1))/(time(i) - time(i-1));
+<span class="keyword">end</span>
+
+<span class="keyword">if</span>(printOn)
+    <span class="comment">% Record processing time</span>
+    t_calced = toc(timerStart);
+    disp(<span class="string">'Back-Calculation of Controls Complete'</span>);
+    disp(<span class="string">'Time to calculate (MM:SS.ms):'</span>);
+    fprintf(<span class="string">'%s\n'</span>,datestr((t_calced-t_simmed)/(24*60*60),<span class="keyword">...</span>
+        <span class="string">'MM:SS.FFF'</span>))
+    fprintf(<span class="string">'\n'</span>);
+    disp(<span class="string">'Begin struct generation &amp; pass/fail analysis'</span>);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Back-Calculation of Controls Complete
+Time to calculate (MM:SS.ms):
+00:10.432
+
+Begin struct generation &amp; pass/fail analysis
+</pre><h2>Save Results to Struct<a name="9"></a></h2><p>Create struct for state and error history</p><pre class="codeinput">stateHistory = struct([]);
+<span class="comment">% F-16 Nonlinear Model States</span>
+stateHistory(1).time = t_vec;
+stateHistory.VT = x_f16_hist(1,:);
+stateHistory.alpha = x_f16_hist(2,:);
+stateHistory.beta = x_f16_hist(3,:);
+stateHistory.phi = x_f16_hist(4,:);
+stateHistory.theta = x_f16_hist(5,:);
+stateHistory.psi = x_f16_hist(6,:);
+stateHistory.P = x_f16_hist(7,:);
+stateHistory.Q = x_f16_hist(8,:);
+stateHistory.R = x_f16_hist(9,:);
+stateHistory.pn = x_f16_hist(10,:);
+stateHistory.pe = x_f16_hist(11,:);
+stateHistory.h = x_f16_hist(12,:);
+stateHistory.pow = x_f16_hist(13,:);
+stateHistory.x_f16_hist = x_f16_hist;
+<span class="comment">% Integral Error States</span>
+stateHistory.Nz_e_i = x_f16_hist(14,:);
+stateHistory.ps_e_i = x_f16_hist(15,:);
+stateHistory.Ny_r_e_i = x_f16_hist(16,:);
+<span class="comment">% Calculated outputs &amp; controlled states</span>
+stateHistory.Nz_hist = Nz_hist;
+stateHistory.ps_hist = ps_hist;
+stateHistory.Ny_r_hist = Ny_r_hist;
+stateHistory.lin_Nz_hist = lin_Nz_hist;
+stateHistory.lin_Ny_hist = lin_Ny_r_hist;
+
+<span class="comment">% Create struct for back-calculated control history</span>
+controlHistory = struct([]);
+controlHistory(1).throttle = u_hist(1,:);
+controlHistory.elevator = u_hist(2,:);
+controlHistory.aileron = u_hist(3,:);
+controlHistory.rudder = u_hist(4,:);
+controlHistory.Nz_ref = u_hist(5,:);
+controlHistory.ps_ref = u_hist(6,:);
+controlHistory.Ny_r_ref = u_hist(7,:);
+
+<span class="comment">% Create output struct to store results.</span>
+simOut = struct(<span class="string">'states'</span>,stateHistory,<span class="string">'ctrls'</span>,controlHistory);
+</pre><h2>Numeric Data Analysis<a name="10"></a></h2><p>Calculate Desired Performance Specs</p><pre class="codeinput">minAltitude = min(x_f16_hist(12,:));            <span class="comment">% ft</span>
+altitudeLost = x_f16_hist(12,1) - minAltitude;  <span class="comment">% ft</span>
+maxAirspeed = max(x_f16_hist(1,:));             <span class="comment">% ft/s</span>
+minAirspeed = min(x_f16_hist(1,:));             <span class="comment">% ft/s</span>
+maxNz = max(Nz_hist);                           <span class="comment">% g's (0==level flight)</span>
+minNz = min(Nz_hist);                           <span class="comment">% g's</span>
+maxSideForce = max(abs(Ny_r_hist));             <span class="comment">% g's</span>
+max_ps_accel = max(abs(ps_accels));             <span class="comment">% rad/s/s</span>
+
+<span class="comment">% Add analysis results to output struct.</span>
+simOut.ps_accels = ps_accels;
+simOut.t_maneuver = t_maneuver;
+simOut.x0 = x0;
+simOut.trimState = xequil;
+simOut.trimCtrl = uequil;
+simOut.lin_ss_model = lin_f16;
+simOut.plantModel = F16_model;
+simOut.flightLimits = flightLimits;
+simOut.controlLimits = ctrlLimits;
+</pre><h2>Calculate Pass/Fail Conditions<a name="11"></a></h2><pre class="codeinput"><span class="comment">% Initialize output struct</span>
+passFail = struct([]);
+passFail(1).stable = true;
+
+<span class="comment">% Check airspeed limits</span>
+<span class="keyword">if</span>(maxAirspeed &gt; flightLimits.vMax || minAirspeed &lt; flightLimits.vMin)
+    passFail.airspeed = false;
+    passFail.stable = false;
+<span class="keyword">else</span>
+    passFail.airspeed = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Check alpha limits</span>
+<span class="keyword">if</span>(max(x_f16_hist(2,:)) &gt; deg2rad(flightLimits.alphaMaxDeg) || <span class="keyword">...</span>
+        min(x_f16_hist(2,:)) &lt; deg2rad(flightLimits.alphaMinDeg))
+    passFail.alpha = false;
+    passFail.stable = false;
+<span class="keyword">else</span>
+    passFail.alpha = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Check beta limits</span>
+<span class="keyword">if</span>(abs(x_f16_hist(3,:)) &gt; deg2rad(flightLimits.betaMaxDeg))
+    passFail.beta = false;
+    passFail.stable = false;
+<span class="keyword">else</span>
+    passFail.beta = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Check Nz limits</span>
+<span class="keyword">if</span>(minNz &lt; flightLimits.NzMin || maxNz &gt; flightLimits.NzMax)
+    passFail.Nz = false;
+<span class="keyword">else</span>
+    passFail.Nz = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Check Ps_rate limits</span>
+<span class="keyword">if</span>(max_ps_accel &gt; flightLimits.psMaxAccelDeg)
+    passFail.psMaxAccelDeg = false;
+<span class="keyword">else</span>
+    passFail.psMaxAccelDeg = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Check altitude limits</span>
+<span class="keyword">if</span>(min(x_f16_hist(12,:)) &lt; flightLimits.altitudeMin ||<span class="keyword">...</span>
+        max(x_f16_hist(12,:)) &gt; flightLimits.altitudeMax)
+    passFail.altitude = false;
+<span class="keyword">else</span>
+    passFail.altitude = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Check maneuver time limits (GCAS?)</span>
+<span class="keyword">if</span>(t_maneuver(2)-t_maneuver(1) &gt; flightLimits.maneuverTime ||<span class="keyword">...</span>
+        t_maneuver(2) &lt; 0)
+    passFail.maneuverTime = false;
+<span class="keyword">else</span>
+    passFail.maneuverTime = true;
+<span class="keyword">end</span>
+
+<span class="comment">% Add passFail to the main output too just in case</span>
+simOut.passFail = passFail;
+
+<span class="keyword">if</span>(printOn)
+    <span class="comment">% Record processing time</span>
+    t_analysis = toc(timerStart);
+    disp(<span class="string">'Pass/Fail Analysis Complete'</span>);
+    disp(<span class="string">'Time to calculate (MM:SS.ms):'</span>);
+    fprintf(<span class="string">'%s\n'</span>,datestr((t_analysis - t_calced)/(24*60*60),<span class="keyword">...</span>
+        <span class="string">'MM:SS.FFF'</span>))
+    fprintf(<span class="string">'\n'</span>);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Pass/Fail Analysis Complete
+Time to calculate (MM:SS.ms):
+00:00.063
+
+</pre><h2>Print Values to Console<a name="12"></a></h2><pre class="codeinput"><span class="keyword">if</span>(printOn)
+    disp(<span class="string">'----------------------------------------------------------'</span>);
+    disp(<span class="string">'RESULTS:'</span>);
+    disp(<span class="string">'              Min &amp; Max Values:'</span>);
+    fprintf(<span class="string">'Min Altitude:          %9.3f   ft \n'</span>, minAltitude);
+    fprintf(<span class="string">'Altitude Lost:         %9.3f   ft \n'</span>, altitudeLost);
+    fprintf(<span class="string">'Min Airspeed:          %9.3f   ft/sec \n'</span>, minAirspeed);
+    fprintf(<span class="string">'Max Airspeed:          %9.3f   ft/sec \n'</span>, maxAirspeed);
+    fprintf(<span class="string">'Max Down Force:        %9.3f   g''s \n'</span>, maxNz);
+    fprintf(<span class="string">'Min Down Force:        %9.3f   g''s \n'</span>, minNz);
+    fprintf(<span class="string">'Max Side Force:        %9.3f   g''s \n'</span>, maxSideForce);
+    fprintf(<span class="string">'Max Roll Accel:        %9.3f   deg/sec^2 \n'</span>, <span class="keyword">...</span>
+        rad2deg(max_ps_accel));
+    fprintf(<span class="string">'\n'</span>);
+    disp(<span class="string">'              Maneuver Event Times:'</span>);
+    fprintf(<span class="string">'Maneuver Start:        %9.3f   sec \n'</span>, t_maneuver(1));
+    <span class="keyword">if</span>(length(t_maneuver)&gt;2)
+        <span class="keyword">for</span>(i = 3:(length(t_maneuver)))
+            fprintf(<span class="string">'Checkpoint %2d:         %9.3f   sec \n'</span>,<span class="keyword">...</span>
+                i-2,t_maneuver(i));
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    fprintf(<span class="string">'Maneuver Complete:     %9.3f   sec \n'</span>, t_maneuver(2));
+    fprintf(<span class="string">'Final Time:            %9.3f   sec \n'</span>, time(end));
+    disp(<span class="string">'(if Checkpoint 2 &lt; Checkpoint 1, it is due to ODE45'</span>);
+    disp(<span class="string">'stepping backwards in time)'</span>);
+    fprintf(<span class="string">'\n'</span>);
+    disp(<span class="string">'              F-16 Attitude at Start:'</span>);
+    fprintf(<span class="string">'Roll   (phi):          %9.3f   deg \n'</span>, <span class="keyword">...</span>
+        rad2deg(x_f16_hist(4,1)));
+    fprintf(<span class="string">'Pitch  (theta):        %9.3f   deg \n'</span>, <span class="keyword">...</span>
+        rad2deg(x_f16_hist(5,1)));
+    fprintf(<span class="string">'Yaw    (psi):          %9.3f   deg \n'</span>, <span class="keyword">...</span>
+        rad2deg(x_f16_hist(6,1)));
+    fprintf(<span class="string">'\n'</span>);
+    disp(<span class="string">'              F-16 Attitude at End:'</span>);
+    fprintf(<span class="string">'Roll   (phi):          %9.3f   deg \n'</span>, <span class="keyword">...</span>
+        rad2deg(x_f16_hist(4,end)));
+    fprintf(<span class="string">'Pitch  (theta):        %9.3f   deg \n'</span>, <span class="keyword">...</span>
+        rad2deg(x_f16_hist(5,end)));
+    fprintf(<span class="string">'Yaw    (psi):          %9.3f   deg \n'</span>, <span class="keyword">...</span>
+        rad2deg(x_f16_hist(6,end)));
+    fprintf(<span class="string">'\n'</span>);
+    disp(<span class="string">'              Pass Fail Conditions:'</span>);
+    disp(passFail);
+    disp(<span class="string">'----------------------------------------------------------'</span>);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">----------------------------------------------------------
+RESULTS:
+              Min &amp; Max Values:
+Min Altitude:             96.178   ft 
+Altitude Lost:          3403.822   ft 
+Min Airspeed:            540.000   ft/sec 
+Max Airspeed:            639.104   ft/sec 
+Max Down Force:            5.222   g's 
+Min Down Force:           -0.426   g's 
+Max Side Force:            0.061   g's 
+Max Roll Accel:          233.522   deg/sec^2 
+
+              Maneuver Event Times:
+Maneuver Start:            2.000   sec 
+Checkpoint  1:             3.395   sec 
+Maneuver Complete:         8.000   sec 
+Final Time:               15.000   sec 
+(if Checkpoint 2 &lt; Checkpoint 1, it is due to ODE45
+stepping backwards in time)
+
+              F-16 Attitude at Start:
+Roll   (phi):             45.000   deg 
+Pitch  (theta):          -72.000   deg 
+Yaw    (psi):            -45.000   deg 
+
+              F-16 Attitude at End:
+Roll   (phi):             -0.000   deg 
+Pitch  (theta):            2.249   deg 
+Yaw    (psi):            -33.514   deg 
+
+              Pass Fail Conditions:
+           stable: 1
+         airspeed: 1
+            alpha: 1
+             beta: 1
+               Nz: 1
+    psMaxAccelDeg: 1
+         altitude: 1
+     maneuverTime: 1
+
+----------------------------------------------------------
+</pre><h2>Create Plots<a name="13"></a></h2><pre class="codeinput"><span class="keyword">if</span>(plotOn)
+    <span class="keyword">if</span>(printOn)
+        disp(<span class="string">'Begin plotting'</span>);
+    <span class="keyword">end</span>
+    <span class="comment">% ENU Path</span>
+    figure(10);
+    hold <span class="string">on</span>;
+    grid <span class="string">on</span>;
+    fig1titlestr = sprintf(<span class="string">'F-16 Path: t_f = %4.2f seconds'</span>,time(end));
+    title(fig1titlestr);
+    xlabel(<span class="string">'East (ft)'</span>);
+    ylabel(<span class="string">'North (ft)'</span>);
+    zlabel(<span class="string">'Altitude (ft)'</span>);
+    hold <span class="string">on</span>;
+    scatter3(x_f16_hist(11,1),x_f16_hist(10,1),x_f16_hist(12,1));
+    plot3(x_f16_hist(11,:),x_f16_hist(10,:),x_f16_hist(12,:));
+    legend(<span class="string">'Start'</span>,<span class="string">'Path'</span>)
+
+    <span class="comment">% Get indices of maneuver times in result time steps</span>
+    time_maneuver = zeros(size(t_maneuver));
+    <span class="keyword">for</span> (i=1:length(t_maneuver))
+        <span class="keyword">if</span>(t_maneuver(i) &gt;= 0)
+            time_maneuver(i) = find(time&lt;=t_maneuver(i),1,<span class="string">'last'</span>);
+        <span class="keyword">else</span>
+            time_maneuver(i) = 1; <span class="comment">%</span>
+            warning(<span class="string">'Maneuver Not Completed'</span>);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    scatter3(x_f16_hist(11,time_maneuver),<span class="keyword">...</span>
+        x_f16_hist(10,time_maneuver),<span class="keyword">...</span>
+        x_f16_hist(12,time_maneuver),<span class="string">'*'</span>);
+    axis <span class="string">image</span>
+    view(3)
+
+
+    <span class="comment">% Attitude</span>
+    figure(2);
+    hold <span class="string">on</span>;
+    grid <span class="string">on</span>;
+    title(<span class="string">'Attitude History'</span>);
+    xlabel(<span class="string">'Time (sec)'</span>);
+    ylabel(<span class="string">'Attitudes &amp; Rates (deg, deg/s)'</span>);
+    hold <span class="string">on</span>;
+    plot(time, rad2deg(x_f16_hist(4,:)),<span class="string">'r'</span>);       <span class="comment">% phi (deg)</span>
+    plot(time, rad2deg(x_f16_hist(5,:)),<span class="string">'g'</span>);       <span class="comment">% theta (deg)</span>
+    plot(time, rad2deg(x_f16_hist(6,:)),<span class="string">'b'</span>);       <span class="comment">% psi (deg)</span>
+    plot(time, rad2deg(x_f16_hist(7,:)),<span class="string">'r--'</span>);     <span class="comment">% p (deg/s)</span>
+    plot(time, rad2deg(x_f16_hist(8,:)),<span class="string">'g--'</span>);     <span class="comment">% q (deg/s)</span>
+    plot(time, rad2deg(x_f16_hist(9,:)),<span class="string">'b--'</span>);     <span class="comment">% r (deg/s)</span>
+    legend(<span class="string">'Roll \phi'</span>,<span class="string">' Pitch \theta'</span>,<span class="string">'Yaw \psi'</span>,<span class="keyword">...</span>
+        <span class="string">'Roll Rate p'</span>,<span class="string">'Pitch Rate q'</span>,<span class="string">'Yaw rate r'</span>,<span class="keyword">...</span>
+        <span class="string">'location'</span>,<span class="string">'SouthEast'</span>)
+
+
+    <span class="comment">% Alpha and Beta</span>
+    figure(3);
+    hold <span class="string">on</span>;
+    grid <span class="string">on</span>;
+    title(<span class="string">'Alpha &amp; Beta'</span>);
+    xlabel(<span class="string">'Time (sec)'</span>);
+    ylabel(<span class="string">'Deflection (deg)'</span>);
+    hold <span class="string">on</span>;
+    plot(time, rad2deg(x_f16_hist(2,:)),<span class="string">'r-'</span>);      <span class="comment">% alpha (deg)</span>
+    plot(time, rad2deg(x_f16_hist(3,:)),<span class="string">'b-'</span>);      <span class="comment">% beta (deg)</span>
+    plot(time, ones(size(time))*(-10),<span class="string">'r--'</span>);       <span class="comment">% alpha min (deg)</span>
+    plot(time, ones(size(time))*45,<span class="string">'r-.'</span>);          <span class="comment">% alpha max (deg)</span>
+    plot(time, ones(size(time))*(-30),<span class="string">'b--'</span>);       <span class="comment">% beta min (deg)</span>
+    plot(time, ones(size(time))*30,<span class="string">'b-.'</span>);          <span class="comment">% beta max (deg)</span>
+    legend(<span class="string">'\alpha'</span>,<span class="string">'\beta'</span>,<span class="string">'\alpha_{min}'</span>,<span class="string">'\alpha_{max}'</span>,<span class="keyword">...</span>
+        <span class="string">'\beta_{min}'</span>,<span class="string">'\beta_{max}'</span>,<span class="keyword">...</span>
+        <span class="string">'location'</span>,<span class="string">'SouthEast'</span>)
+
+    <span class="comment">% Vt</span>
+    figure(4);
+    grid <span class="string">on</span>;
+    title(<span class="string">'Airspeed'</span>);
+    xlabel(<span class="string">'Time (sec)'</span>);
+    ylabel(<span class="string">'KIAS (ft/sec)'</span>);
+    hold <span class="string">on</span>;
+    plot(time, ones(size(time))*xequil(1),<span class="string">'k:'</span>);
+    plot(time,x_f16_hist(1,:));
+    plot(time, ones(size(time))*300,<span class="string">'r--'</span>);
+    plot(time, ones(size(time))*900,<span class="string">'r-.'</span>);
+    legend(<span class="string">'V_{trim}'</span>,<span class="string">'V'</span>,<span class="string">'V_{min}'</span>,<span class="string">'V_{max}'</span>,<span class="string">'location'</span>,<span class="string">'SouthEast'</span>)
+
+
+    <span class="comment">% All Control Signals</span>
+    figure(5);
+    hold <span class="string">on</span>;
+    grid <span class="string">on</span>;
+    title(<span class="string">'F-16 Control'</span>);
+    xlabel(<span class="string">'Time (sec)'</span>);
+    ylabel(<span class="string">'Control (deg &amp; percent)'</span>);
+    hold <span class="string">on</span>;
+    plot(time,u_hist(1,:));
+    plot(time,rad2deg(u_hist(2,:)));
+    plot(time,rad2deg(u_hist(3,:)));
+    plot(time,rad2deg(u_hist(4,:)));
+    legend(<span class="string">'Throttle'</span>,<span class="string">'Elevator'</span>,<span class="string">'Aileron'</span>,<span class="string">'Rudder'</span>,<span class="string">'location'</span>,<span class="keyword">...</span>
+        <span class="string">'NorthWest'</span>)
+
+
+    <span class="comment">% Longitudinal States &amp; Control</span>
+    figure(7)
+    hold <span class="string">on</span>;
+    title(<span class="string">'Longitudinal States &amp; Control'</span>);
+    xlabel(<span class="string">'Time (sec)'</span>);
+    ylabel(<span class="string">'Nz (g''s), States (rad), States &amp; Ctrl (rad)'</span>);
+    <span class="comment">% State Order:  alpha, q, Nz</span>
+    plot(time, (x_f16_hist(2,:)),<span class="string">'g'</span>);              <span class="comment">% Alpha (rad)</span>
+    plot(time, (x_f16_hist(8,:)),<span class="string">'b'</span>);              <span class="comment">% q (rad/s)</span>
+    plot(time, u_hist(5,:),<span class="string">'k-.'</span>);                  <span class="comment">% Nz_r</span>
+    plot(time, Nz_hist,<span class="string">'r-'</span>);                       <span class="comment">% Nz (g's)</span>
+    plot(time, lin_Nz_hist,<span class="string">'r--'</span>);                  <span class="comment">% Linear Nz (g's)</span>
+    plot(time, x_f16_hist(14,:),<span class="string">'r:'</span>);              <span class="comment">% Nz_i</span>
+    plot(time, (u_hist(2,:)),<span class="string">'c'</span>);                  <span class="comment">% Elevator (rad)</span>
+    legend(<span class="string">'\alpha'</span>,<span class="string">'q'</span>,<span class="string">'Nz_{ref}'</span>,<span class="string">'Nz'</span>,<span class="string">'Linear Nz'</span>,<span class="string">'Nz_i'</span>,<span class="string">'Elevator'</span>);
+
+
+    <span class="comment">% Lateral States &amp; Control</span>
+    figure(8)
+    hold <span class="string">on</span>;
+    title(<span class="string">'Lateral States &amp; Control'</span>);
+    xlabel(<span class="string">'Time (sec)'</span>);
+    ylabel(<span class="string">'ps (rad/sec), Ny_r (g''s), States &amp; Ctrl (rad)'</span>);
+    <span class="comment">% State Order:  beta p r ps_i Ny_r_i</span>
+    plot(time, (x_f16_hist(3,:)),<span class="string">'g'</span>);              <span class="comment">% Beta (rad)</span>
+    plot(time, u_hist(6,:),<span class="string">'k-.'</span>);                  <span class="comment">% ps_ref</span>
+    plot(time, ps_hist,<span class="string">'r'</span>);                        <span class="comment">% ps</span>
+    plot(time, x_f16_hist(15,:),<span class="string">'r:'</span>);              <span class="comment">% ps_i</span>
+    plot(time, Ny_r_hist,<span class="string">'b-'</span>);                     <span class="comment">% Ny_r (g's)</span>
+    <span class="comment">% plot(time, lin_Ny_r_hist,'r--');              % Linear Nz_r (g's)</span>
+    plot(time, x_f16_hist(16,:),<span class="string">'b:'</span>);              <span class="comment">% Ny_r_i</span>
+    plot(time, (u_hist(3,:)),<span class="string">'c'</span>);                  <span class="comment">% Aileron (rad)</span>
+    plot(time, (u_hist(4,:)),<span class="string">'m'</span>);                  <span class="comment">% Rudder (rad)</span>
+    legend(<span class="string">'\beta'</span>,<span class="string">'p_{s,ref}'</span>,<span class="string">'p_s'</span>,<span class="string">'p_{s,i}'</span>,<span class="keyword">...</span>
+        <span class="string">'Ny+r'</span>,<span class="string">'Ny+r_i'</span>,<span class="string">'Aileron'</span>,<span class="string">'Rudder'</span>);
+
+    <span class="keyword">if</span>(printOn)
+        <span class="comment">% Record processing time</span>
+        t_plotted = toc(timerStart);
+
+        disp(<span class="string">'Plot Generation Complete'</span>);
+        disp(<span class="string">'Time to calculate (MM:SS.ms):'</span>);
+        fprintf(<span class="string">'%s\n'</span>,datestr((t_plotted-t_analysis)/(24*60*60),<span class="keyword">...</span>
+            <span class="string">'MM:SS.FFF'</span>))
+        fprintf(<span class="string">'\n'</span>);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">if</span>(profilerOn)
+    profile <span class="string">viewer</span>;
+    profile <span class="string">off</span>;
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Begin plotting
+Plot Generation Complete
+Time to calculate (MM:SS.ms):
+00:01.971
+
+</pre><img vspace="5" hspace="5" src="RunF16Sim_01.png" alt=""> <img vspace="5" hspace="5" src="RunF16Sim_02.png" alt=""> <img vspace="5" hspace="5" src="RunF16Sim_03.png" alt=""> <img vspace="5" hspace="5" src="RunF16Sim_04.png" alt=""> <img vspace="5" hspace="5" src="RunF16Sim_05.png" alt=""> <img vspace="5" hspace="5" src="RunF16Sim_06.png" alt=""> <img vspace="5" hspace="5" src="RunF16Sim_07.png" alt=""> <pre class="codeoutput error">Error using RunF16Sim (line 57)
+Insufficient Arguments given
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [ simOut, passFail ] = RunF16Sim(initialState, t_vec, ...
+    orient,F16_model,flightLimits,ctrlLimits,autopilot, analysisOn, ...
+    printOn, plotOn)
+%Simulates and analyzes autonomous F-16 maneuvers using ode45
+%
+%   Function Calls:
+%       [ simOut ] = NonlinSim_F16_func(initialState, t_vec, orient, ...
+%                       plantModel, printOn, plotOn)
+%       [ simOut, passFail ] = NonlinSim_F16_func(initialState, ...
+%           0:0.01:15, 4, 'morelli', true, true)
+%
+%   Inputs:
+%       initialState - initial F-16 state vector in feet, rad, etc.
+%                       [Vt alpha beta phi theta psi P Q R pn pe h pow]
+%       t_vec    - desired time vector (1xN)
+%       orient   - desired trim condition (values 1, 2, 3, or 4)
+%                       1:    Wings Level (gamma = 0)
+%                       2:    Wings Level (gamma <> 0)
+%                       3:    Constant Altitude Turn
+%                       4:    Steady Pull Up
+%       F16_model - Optional string defining which function to use to
+%           calculate state derivatives: {'morelli','stevens','linear'}.
+%           Defaults to 'morelli'.
+%       flightLimits - struct of pass fail limits
+%       ctrlLimits - struct of control limits
+%       analysisOn - if true, runs full analysis on sim results. If false,
+%           only returns vector as output
+%       printOn  - if true, prints results to console
+%       plotOn   - if true, plots results in figures
+%
+%   Outputs:
+%       simOut  - structure of analyzed results
+%
+%   Comments:
+%   This is a functionalized version of "NonlinSim_F16", meant to be used
+%   for monte-carlo style simulations or analysis if needed. All of the
+%   calculations are the same. If this function is called with no
+%   arguments, it runs my default test case.
+%
+%   The outer-loop control methods implemented are contained in the
+%   function "getOuterLoopCtrl". If you desire to use hard-coded outer-loop
+%   control or maneuvers, or want to change the implementation of GCAS,
+%   that is the function which needs to be changed.
+%
+% <a href="https://github.com/pheidlauf/AeroBenchVV">AeroBenchVV</a>
+% Copyright: GNU General Public License 2017
+%
+% See also: CONTROLLEDF16, GETAUTOPILOTCOMMANDS, ODE45
+
+% If called with no arguments, run "Main.m".
+if(nargin==0)
+    Main;
+end
+
+% Check that enough arguments are given
+if(nargin<7)
+    error('Insufficient Arguments given')
+end
+
+% Default analysisOn to true
+if(~exist('analysisOn','var'))
+    analysisOn = true;
+end
+% Default printOn to true
+if(~exist('printOn','var'))
+    printOn = true;
+end
+
+% Default plotOn to true
+if(~exist('plotOn','var'))
+    plotOn = true;
+end
+
+% If true, runs the profiler for streamlining & debugging
+profilerOn = false;
+% Start the clock to track processing time
+timerStart = tic;
+% Add necessary sub folder to path
+addpath(genpath('F16_Model'));
+
+%% Check flightLimits against model requirements
+% Limit airspeed from 300 to 900 ft/s
+if(flightLimits.vMin < 300 || flightLimits.vMax > 900)
+    error('flightLimits: Airspeed limits outside model limits (300 to 900)');
+end
+% Limit alpha from -10 to 45 deg
+if(flightLimits.alphaMinDeg < -10 || flightLimits.alphaMaxDeg > 45)
+    error('flightLimits: Alpha limits outside model limits (-10 to 45)');
+end
+% Limit beta from -30 to 30 deg (positive only, symmetric)
+if(abs(flightLimits.betaMaxDeg) > 30)
+    error('flightLimits: Beta limit outside model limits (30 deg)');
+end
+
+
+%% Check ctrlLimits against model limits (user-proofing)
+% Limit throttle from 0 to 1
+if(ctrlLimits.ThrottleMin < 0 || ctrlLimits.ThrottleMax > 1)
+    error('ctrlLimits: Throttle Limits (0 to 1)');
+end
+
+% Limit elevator from -25 to 25 deg
+if(ctrlLimits.ElevatorMaxDeg > 25 || ctrlLimits.ElevatorMinDeg < -25)
+    error('ctrlLimits: Elevator Limits (-25 deg to 25 deg)');
+end
+
+% Limit aileron from -21.5 to 21.5 deg
+if(ctrlLimits.AileronMaxDeg > 21.5 || ctrlLimits.AileronMinDeg < -21.5)
+    error('ctrlLimits: Aileron Limits (-21.5 deg to 21.5 deg)');
+end
+
+% Limit rudder from -30 to 30 deg
+if(ctrlLimits.RudderMaxDeg > 30 || ctrlLimits.RudderMinDeg < -30)
+    error('ctrlLimits: Rudder Limits (-30 deg to 30 deg)');
+end
+
+%% Get Trim / Equilibrium Conditions
+if(printOn)
+    disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+    disp('F-16 Decoupled LQR Controller for Nz, P_s, and Ny+r tracking');
+    disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+end
+
+% Format initial Conditions for Simulation and append integral error states
+x0 = [initialState'; 0; 0; 0];
+
+% Define Control Guess
+uguess = [.2 0 0 0];
+
+% Format inputs for trimmerFun
+inputs = [initialState(1), initialState(12), 0, 0, 0];
+
+if(printOn)
+    printmat(inputs,'Operator Inputs',[],'Vt h gamma psidot thetadot')
+    fprintf('Trim Orientation Selected:   ');
+    switch orient
+        case 1
+            disp('Wings Level (gamma = 0)');
+        case 2
+            disp('Wings Level (gamme <> 0)');
+        case 3
+            disp('Constant Altitude Turn');
+        case 4
+            disp('Steady Pull Up');
+        otherwise
+            error('Invalid Orientation for trimmerFun');
+    end
+    printmat(initialState,'Inititial Conditions',[],...
+        'Vt alpha beta phi theta psi p q r pn pe alt pow');
+    printmat(uguess,'Control Guess',[],...
+        'throttle elevator aileron rudder');
+end
+
+% Get Equilibrium Values
+[xequil,uequil] = trimmerFun(initialState, uguess, orient, inputs, false);
+
+if(printOn)
+    disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+    disp('Equilibrium / Trim Conditions');
+    printmat(xequil','State Equilibrium',[],...
+        'Vt alpha beta phi theta psi p q r pn pe alt pow');
+    printmat(uequil','Control Equilibrium',[],...
+        'throttle elevator aileron rudder');
+end
+
+%% Build Linear LQR Controller from Workspace Data
+
+% Get linearized ss-model (in case F16_method=='linear');
+lin_f16 = getLinF16(xequil,uequil,printOn);
+
+% Load Decoupled Controllers from workspace
+load('lateralCtrlData.mat')
+load('longitudinalCtrlData.mat')
+
+% Append decoupled LQR gain matrices
+K_lqr = blkdiag(K_long, K_lat);
+if(printOn)
+    printmat(K_lqr,'Decoupled LQR Controller Gains', ...
+        'elevator aileron rudder',...
+        'alpha q Nz_i beta p r ps_i Ny_r_i');
+end
+
+%% Simulate Using ODE Solver
+if(printOn)
+    disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+    disp('Running Nonlinear Simulation in ODE45');
+end
+
+% USER EDIT: Set ode options if desired
+options = [];
+
+% Call ode45 to simulate controlled nonlinear system
+[time,x_f16_hist] = ode45(@(t,y) controlledF16(t,y,xequil, uequil,...
+    K_lqr, F16_model, lin_f16, flightLimits,ctrlLimits,autopilot),...
+    t_vec, x0, options);
+
+% Record time to complete simulation
+t_simmed = toc(timerStart);
+
+if(printOn)
+    fprintf('\n');
+    disp('Simulation Complete');
+    disp('Time to simulate (MM:SS.ms):');
+    fprintf('%s\n',datestr((t_simmed)/(24*60*60),'MM:SS.FFF'))
+    fprintf('\n');
+    disp('Begin back-calculation of controls');
+end
+
+%% Back-calculate & format needed intermediate states
+% Format Output for easier indexing
+x_f16_hist = x_f16_hist';
+
+if(~analysisOn)
+    simOut = x_f16_hist;
+    passFail = 'NO ANALYSIS COMPLETED';
+    warning('No analysis completed');
+    return
+end
+
+% Initialize "history" vectors
+u_hist = zeros(7,length(time));         % Control
+Nz_hist = zeros(1,length(time));        % Nz (full nonlinear calculation)
+ps_hist = zeros(1,length(time));        % ps (full nonlinear calculation)
+Ny_r_hist = zeros(1,length(time));      % Ny_r
+lin_Nz_hist = zeros(1,length(time));    % Nz (linear approximation)
+lin_Ny_r_hist = zeros(1,length(time));    % Ny (linear approximation)
+
+% Recall GCAS time steps from persistent memory of getAutopilotCommands
+% [~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil,...
+%     ctrlLimits, false);
+[~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil, ...
+    flightLimits, ctrlLimits, autopilot, false);
+
+% Reset Persistent Variables in getOuterLoopControl
+% getAutopilotCommands(0, x0, xequil, uequil, ctrlLimits, true);
+getAutopilotCommands(0, x0, xequil, uequil, ...
+    flightLimits, ctrlLimits, autopilot, true);
+
+%{
+Note: Several important intermediate values are not outputted from ode45
+automatically. Below, I use the outputted states and time vector to
+recalculate the values and store them for data analysis and visualization.
+Because ode45 integrates with an non-fixed time-step, the recalled &
+recalculated results may be slightly different. This primarily effects the
+ps_ref and Nz_ref history.
+%}
+    
+% Back calculate controlled states for each time step
+for i = 1:length(time)
+    [~,u,Nz,ps,Ny_r] = controlledF16(time(i),x_f16_hist(:,i),...
+        xequil, uequil, K_lqr, F16_model, lin_f16,...
+        flightLimits, ctrlLimits, autopilot);
+    Nz_hist(i) = Nz;
+    ps_hist(i) = ps;
+    Ny_r_hist(i) = Ny_r;
+    u_hist(:,i) = u;
+
+    % Linear approx of Nz
+    lin_Nz_hist(i) = (lin_f16.c(1,:)*(x_f16_hist(1:13,i) - xequil)+ ...
+        lin_f16.d(1,:)*(u(1:4) + uequil));
+    %     lin_Nz_hist(i) = (lin_f16.c(1,:)*(x_f16_hist(1:13,i)) + ...
+    %         lin_f16.d(1,:)*(u(1:4)));
+
+    % Linear approx of (Ny + r)
+    lin_Ny_r_hist(i) = (lin_f16.c(6,:)*(x_f16_hist(1:13,i)-xequil)+...
+        lin_f16.d(6,:)*(u(1:4) + uequil)) + x_f16_hist(9,i);
+end
+
+% Determine ps acceleration (rad/s/s)
+ps_accels = zeros(1,length(ps_hist));
+ps_accels(1) = 1;
+for i = 2:length(ps_hist)
+    ps_accels(i) = (ps_hist(i) - ps_hist(i-1))/(time(i) - time(i-1));
+end
+
+if(printOn)
+    % Record processing time
+    t_calced = toc(timerStart);
+    disp('Back-Calculation of Controls Complete');
+    disp('Time to calculate (MM:SS.ms):');
+    fprintf('%s\n',datestr((t_calced-t_simmed)/(24*60*60),...
+        'MM:SS.FFF'))
+    fprintf('\n');
+    disp('Begin struct generation & pass/fail analysis');
+end
+
+%% Save Results to Struct
+% Create struct for state and error history
+stateHistory = struct([]);
+% F-16 Nonlinear Model States
+stateHistory(1).time = t_vec;
+stateHistory.VT = x_f16_hist(1,:);
+stateHistory.alpha = x_f16_hist(2,:);
+stateHistory.beta = x_f16_hist(3,:);
+stateHistory.phi = x_f16_hist(4,:);
+stateHistory.theta = x_f16_hist(5,:);
+stateHistory.psi = x_f16_hist(6,:);
+stateHistory.P = x_f16_hist(7,:);
+stateHistory.Q = x_f16_hist(8,:);
+stateHistory.R = x_f16_hist(9,:);
+stateHistory.pn = x_f16_hist(10,:);
+stateHistory.pe = x_f16_hist(11,:);
+stateHistory.h = x_f16_hist(12,:);
+stateHistory.pow = x_f16_hist(13,:);
+stateHistory.x_f16_hist = x_f16_hist;
+% Integral Error States
+stateHistory.Nz_e_i = x_f16_hist(14,:);
+stateHistory.ps_e_i = x_f16_hist(15,:);
+stateHistory.Ny_r_e_i = x_f16_hist(16,:);
+% Calculated outputs & controlled states
+stateHistory.Nz_hist = Nz_hist;
+stateHistory.ps_hist = ps_hist;
+stateHistory.Ny_r_hist = Ny_r_hist;
+stateHistory.lin_Nz_hist = lin_Nz_hist;
+stateHistory.lin_Ny_hist = lin_Ny_r_hist;
+
+% Create struct for back-calculated control history
+controlHistory = struct([]);
+controlHistory(1).throttle = u_hist(1,:);
+controlHistory.elevator = u_hist(2,:);
+controlHistory.aileron = u_hist(3,:);
+controlHistory.rudder = u_hist(4,:);
+controlHistory.Nz_ref = u_hist(5,:);
+controlHistory.ps_ref = u_hist(6,:);
+controlHistory.Ny_r_ref = u_hist(7,:);
+
+% Create output struct to store results.
+simOut = struct('states',stateHistory,'ctrls',controlHistory);
+
+%% Numeric Data Analysis
+% Calculate Desired Performance Specs
+minAltitude = min(x_f16_hist(12,:));            % ft
+altitudeLost = x_f16_hist(12,1) - minAltitude;  % ft
+maxAirspeed = max(x_f16_hist(1,:));             % ft/s
+minAirspeed = min(x_f16_hist(1,:));             % ft/s
+maxNz = max(Nz_hist);                           % g's (0==level flight)
+minNz = min(Nz_hist);                           % g's
+maxSideForce = max(abs(Ny_r_hist));             % g's
+max_ps_accel = max(abs(ps_accels));             % rad/s/s
+
+% Add analysis results to output struct.
+simOut.ps_accels = ps_accels;
+simOut.t_maneuver = t_maneuver;
+simOut.x0 = x0;
+simOut.trimState = xequil;
+simOut.trimCtrl = uequil;
+simOut.lin_ss_model = lin_f16;
+simOut.plantModel = F16_model;
+simOut.flightLimits = flightLimits;
+simOut.controlLimits = ctrlLimits;
+
+%% Calculate Pass/Fail Conditions
+
+% Initialize output struct
+passFail = struct([]);
+passFail(1).stable = true;
+
+% Check airspeed limits
+if(maxAirspeed > flightLimits.vMax || minAirspeed < flightLimits.vMin)
+    passFail.airspeed = false;
+    passFail.stable = false;
+else
+    passFail.airspeed = true;
+end
+
+% Check alpha limits
+if(max(x_f16_hist(2,:)) > deg2rad(flightLimits.alphaMaxDeg) || ...
+        min(x_f16_hist(2,:)) < deg2rad(flightLimits.alphaMinDeg))
+    passFail.alpha = false;
+    passFail.stable = false;
+else
+    passFail.alpha = true;
+end
+
+% Check beta limits
+if(abs(x_f16_hist(3,:)) > deg2rad(flightLimits.betaMaxDeg))
+    passFail.beta = false;
+    passFail.stable = false;
+else
+    passFail.beta = true;
+end
+
+% Check Nz limits
+if(minNz < flightLimits.NzMin || maxNz > flightLimits.NzMax)
+    passFail.Nz = false;
+else
+    passFail.Nz = true;
+end
+
+% Check Ps_rate limits
+if(max_ps_accel > flightLimits.psMaxAccelDeg)
+    passFail.psMaxAccelDeg = false;
+else
+    passFail.psMaxAccelDeg = true;
+end
+
+% Check altitude limits
+if(min(x_f16_hist(12,:)) < flightLimits.altitudeMin ||...
+        max(x_f16_hist(12,:)) > flightLimits.altitudeMax)
+    passFail.altitude = false;
+else
+    passFail.altitude = true;
+end
+
+% Check maneuver time limits (GCAS?)
+if(t_maneuver(2)-t_maneuver(1) > flightLimits.maneuverTime ||...
+        t_maneuver(2) < 0)
+    passFail.maneuverTime = false;
+else
+    passFail.maneuverTime = true;
+end
+
+% Add passFail to the main output too just in case
+simOut.passFail = passFail;
+
+if(printOn)
+    % Record processing time
+    t_analysis = toc(timerStart);
+    disp('Pass/Fail Analysis Complete');
+    disp('Time to calculate (MM:SS.ms):');
+    fprintf('%s\n',datestr((t_analysis - t_calced)/(24*60*60),...
+        'MM:SS.FFF'))
+    fprintf('\n');
+end
+
+%% Print Values to Console
+
+if(printOn)
+    disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+    disp('RESULTS:');
+    disp('              Min & Max Values:');
+    fprintf('Min Altitude:          %9.3f   ft \n', minAltitude);
+    fprintf('Altitude Lost:         %9.3f   ft \n', altitudeLost);
+    fprintf('Min Airspeed:          %9.3f   ft/sec \n', minAirspeed);
+    fprintf('Max Airspeed:          %9.3f   ft/sec \n', maxAirspeed);
+    fprintf('Max Down Force:        %9.3f   g''s \n', maxNz);
+    fprintf('Min Down Force:        %9.3f   g''s \n', minNz);
+    fprintf('Max Side Force:        %9.3f   g''s \n', maxSideForce);
+    fprintf('Max Roll Accel:        %9.3f   deg/sec^2 \n', ...
+        rad2deg(max_ps_accel));
+    fprintf('\n');
+    disp('              Maneuver Event Times:');
+    fprintf('Maneuver Start:        %9.3f   sec \n', t_maneuver(1));
+    if(length(t_maneuver)>2)
+        for(i = 3:(length(t_maneuver)))
+            fprintf('Checkpoint %2d:         %9.3f   sec \n',...
+                i-2,t_maneuver(i));
+        end
+    end
+    fprintf('Maneuver Complete:     %9.3f   sec \n', t_maneuver(2));
+    fprintf('Final Time:            %9.3f   sec \n', time(end));
+    disp('(if Checkpoint 2 < Checkpoint 1, it is due to ODE45');
+    disp('stepping backwards in time)');
+    fprintf('\n');
+    disp('              F-16 Attitude at Start:');
+    fprintf('Roll   (phi):          %9.3f   deg \n', ...
+        rad2deg(x_f16_hist(4,1)));
+    fprintf('Pitch  (theta):        %9.3f   deg \n', ...
+        rad2deg(x_f16_hist(5,1)));
+    fprintf('Yaw    (psi):          %9.3f   deg \n', ...
+        rad2deg(x_f16_hist(6,1)));
+    fprintf('\n');
+    disp('              F-16 Attitude at End:');
+    fprintf('Roll   (phi):          %9.3f   deg \n', ...
+        rad2deg(x_f16_hist(4,end)));
+    fprintf('Pitch  (theta):        %9.3f   deg \n', ...
+        rad2deg(x_f16_hist(5,end)));
+    fprintf('Yaw    (psi):          %9.3f   deg \n', ...
+        rad2deg(x_f16_hist(6,end)));
+    fprintf('\n');
+    disp('              Pass Fail Conditions:');
+    disp(passFail);
+    disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+end
+
+%% Create Plots
+
+if(plotOn)
+    if(printOn)
+        disp('Begin plotting');
+    end
+    % ENU Path
+    figure(10);
+    hold on;
+    grid on;
+    fig1titlestr = sprintf('F-16 Path: t_f = %4.2f seconds',time(end));
+    title(fig1titlestr);
+    xlabel('East (ft)');
+    ylabel('North (ft)');
+    zlabel('Altitude (ft)');
+    hold on;
+    scatter3(x_f16_hist(11,1),x_f16_hist(10,1),x_f16_hist(12,1));
+    plot3(x_f16_hist(11,:),x_f16_hist(10,:),x_f16_hist(12,:));
+    legend('Start','Path')
+
+    % Get indices of maneuver times in result time steps
+    time_maneuver = zeros(size(t_maneuver));
+    for (i=1:length(t_maneuver))
+        if(t_maneuver(i) >= 0)
+            time_maneuver(i) = find(time<=t_maneuver(i),1,'last');
+        else
+            time_maneuver(i) = 1; %
+            warning('Maneuver Not Completed');
+        end
+    end
+
+    scatter3(x_f16_hist(11,time_maneuver),...
+        x_f16_hist(10,time_maneuver),...
+        x_f16_hist(12,time_maneuver),'*');
+    axis image
+    view(3)
+
+
+    % Attitude
+    figure(2);
+    hold on;
+    grid on;
+    title('Attitude History');
+    xlabel('Time (sec)');
+    ylabel('Attitudes & Rates (deg, deg/s)');
+    hold on;
+    plot(time, rad2deg(x_f16_hist(4,:)),'r');       % phi (deg)
+    plot(time, rad2deg(x_f16_hist(5,:)),'g');       % theta (deg)
+    plot(time, rad2deg(x_f16_hist(6,:)),'b');       % psi (deg)
+    plot(time, rad2deg(x_f16_hist(7,:)),'rREPLACE_WITH_DASH_DASH');     % p (deg/s)
+    plot(time, rad2deg(x_f16_hist(8,:)),'gREPLACE_WITH_DASH_DASH');     % q (deg/s)
+    plot(time, rad2deg(x_f16_hist(9,:)),'bREPLACE_WITH_DASH_DASH');     % r (deg/s)
+    legend('Roll \phi',' Pitch \theta','Yaw \psi',...
+        'Roll Rate p','Pitch Rate q','Yaw rate r',...
+        'location','SouthEast')
+
+
+    % Alpha and Beta
+    figure(3);
+    hold on;
+    grid on;
+    title('Alpha & Beta');
+    xlabel('Time (sec)');
+    ylabel('Deflection (deg)');
+    hold on;
+    plot(time, rad2deg(x_f16_hist(2,:)),'r-');      % alpha (deg)
+    plot(time, rad2deg(x_f16_hist(3,:)),'b-');      % beta (deg)
+    plot(time, ones(size(time))*(-10),'rREPLACE_WITH_DASH_DASH');       % alpha min (deg)
+    plot(time, ones(size(time))*45,'r-.');          % alpha max (deg)
+    plot(time, ones(size(time))*(-30),'bREPLACE_WITH_DASH_DASH');       % beta min (deg)
+    plot(time, ones(size(time))*30,'b-.');          % beta max (deg)
+    legend('\alpha','\beta','\alpha_{min}','\alpha_{max}',...
+        '\beta_{min}','\beta_{max}',...
+        'location','SouthEast')
+
+    % Vt
+    figure(4);
+    grid on;
+    title('Airspeed');
+    xlabel('Time (sec)');
+    ylabel('KIAS (ft/sec)');
+    hold on;
+    plot(time, ones(size(time))*xequil(1),'k:');
+    plot(time,x_f16_hist(1,:));
+    plot(time, ones(size(time))*300,'rREPLACE_WITH_DASH_DASH');
+    plot(time, ones(size(time))*900,'r-.');
+    legend('V_{trim}','V','V_{min}','V_{max}','location','SouthEast')
+
+
+    % All Control Signals
+    figure(5);
+    hold on;
+    grid on;
+    title('F-16 Control');
+    xlabel('Time (sec)');
+    ylabel('Control (deg & percent)');
+    hold on;
+    plot(time,u_hist(1,:));
+    plot(time,rad2deg(u_hist(2,:)));
+    plot(time,rad2deg(u_hist(3,:)));
+    plot(time,rad2deg(u_hist(4,:)));
+    legend('Throttle','Elevator','Aileron','Rudder','location',...
+        'NorthWest')
+
+
+    % Longitudinal States & Control
+    figure(7)
+    hold on;
+    title('Longitudinal States & Control');
+    xlabel('Time (sec)');
+    ylabel('Nz (g''s), States (rad), States & Ctrl (rad)');
+    % State Order:  alpha, q, Nz
+    plot(time, (x_f16_hist(2,:)),'g');              % Alpha (rad)
+    plot(time, (x_f16_hist(8,:)),'b');              % q (rad/s)
+    plot(time, u_hist(5,:),'k-.');                  % Nz_r
+    plot(time, Nz_hist,'r-');                       % Nz (g's)
+    plot(time, lin_Nz_hist,'rREPLACE_WITH_DASH_DASH');                  % Linear Nz (g's)
+    plot(time, x_f16_hist(14,:),'r:');              % Nz_i
+    plot(time, (u_hist(2,:)),'c');                  % Elevator (rad)
+    legend('\alpha','q','Nz_{ref}','Nz','Linear Nz','Nz_i','Elevator');
+
+
+    % Lateral States & Control
+    figure(8)
+    hold on;
+    title('Lateral States & Control');
+    xlabel('Time (sec)');
+    ylabel('ps (rad/sec), Ny_r (g''s), States & Ctrl (rad)');
+    % State Order:  beta p r ps_i Ny_r_i
+    plot(time, (x_f16_hist(3,:)),'g');              % Beta (rad)
+    plot(time, u_hist(6,:),'k-.');                  % ps_ref
+    plot(time, ps_hist,'r');                        % ps
+    plot(time, x_f16_hist(15,:),'r:');              % ps_i
+    plot(time, Ny_r_hist,'b-');                     % Ny_r (g's)
+    % plot(time, lin_Ny_r_hist,'rREPLACE_WITH_DASH_DASH');              % Linear Nz_r (g's)
+    plot(time, x_f16_hist(16,:),'b:');              % Ny_r_i
+    plot(time, (u_hist(3,:)),'c');                  % Aileron (rad)
+    plot(time, (u_hist(4,:)),'m');                  % Rudder (rad)
+    legend('\beta','p_{s,ref}','p_s','p_{s,i}',...
+        'Ny+r','Ny+r_i','Aileron','Rudder');
+    
+    if(printOn)
+        % Record processing time
+        t_plotted = toc(timerStart);
+        
+        disp('Plot Generation Complete');
+        disp('Time to calculate (MM:SS.ms):');
+        fprintf('%s\n',datestr((t_plotted-t_analysis)/(24*60*60),...
+            'MM:SS.FFF'))
+        fprintf('\n');
+    end
+end
+
+if(profilerOn)
+    profile viewer;
+    profile off;
+end
+end
+##### SOURCE END #####
+--></body></html>

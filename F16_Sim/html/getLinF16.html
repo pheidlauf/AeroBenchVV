@@ -1,0 +1,529 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>getLinF16</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-21"><meta name="DC.source" content="getLinF16.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [ lin_f16 ] = getLinF16( xequil,uequil,printOn )
+<span class="comment">%Given equilibrium trim and controls, returns a linearized state space</span>
+<span class="comment">% model of the F-16.</span>
+<span class="comment">%</span>
+<span class="comment">%   Function Call:</span>
+<span class="comment">%       lin_f16 = getLinF16( xequil,uequil)</span>
+<span class="comment">%       lin_f16 = getLinF16( xequil,uequil,printOn )</span>
+<span class="comment">%</span>
+<span class="comment">%   Inputs:</span>
+<span class="comment">%       xequil  -   Equilibrium states (13x1)</span>
+<span class="comment">%       uequil  -   Equilibrium control (4x1)</span>
+<span class="comment">%       printOn -   If true, prints intermediate data</span>
+<span class="comment">%</span>
+<span class="comment">%   Outputs:</span>
+<span class="comment">%       lin_f16 -   labeled state space model of f16</span>
+<span class="comment">%                   (13 state, 4 control, 10 output)</span>
+<span class="comment">%</span>
+<span class="comment">%   x_f16 states:</span>
+<span class="comment">%       x_f16(1)  = air speed, VT                           (ft/s)</span>
+<span class="comment">%       x_f16(2)  = angle of attack, alpha                  (rad)</span>
+<span class="comment">%       x_f16(3)  = angle of sideslip, beta                 (rad)</span>
+<span class="comment">%       x_f16(4)  = roll angle, phi                         (rad)</span>
+<span class="comment">%       x_f16(5)  = pitch angle, theta                      (rad)</span>
+<span class="comment">%       x_f16(6)  = yaw angle, psi                          (rad)</span>
+<span class="comment">%       x_f16(7)  = roll rate, P                            (rad/s)</span>
+<span class="comment">%       x_f16(8)  = pitch rate, Q                           (rad/s)</span>
+<span class="comment">%       x_f16(9)  = yaw rate, R                             (rad/s)</span>
+<span class="comment">%       x_f16(10) = northward horizontal displacement, pn   (ft)</span>
+<span class="comment">%       x_f16(11) = eastward horizontal displacement, pe    (ft)</span>
+<span class="comment">%       x_f16(12) = altitude, h                             (ft)</span>
+<span class="comment">%       x_f16(13) = engine thrust dynamics lag state, pow   (lbs)</span>
+<span class="comment">%</span>
+<span class="comment">%   x_f16 controls:</span>
+<span class="comment">%       u(1) = throttle                                     (0 to 1)</span>
+<span class="comment">%       u(2) = elevator                                     (rad?)</span>
+<span class="comment">%       u(3) = aileron                                      (rad?)</span>
+<span class="comment">%       u(4) = rudder                                       (rad?)</span>
+<span class="comment">%</span>
+<span class="comment">% &lt;a href="https://github.com/pheidlauf/AeroBenchVV"&gt;AeroBenchVV&lt;/a&gt;</span>
+<span class="comment">% Copyright: GNU General Public License 2017</span>
+<span class="comment">%</span>
+<span class="comment">% See also: TRIMMERFUN, JACOBFUN</span>
+
+<span class="keyword">if</span>(nargin==0)
+    printOn = true;
+    <span class="comment">% SET THESE VALUES MANUALLY</span>
+    hg = 0;         <span class="comment">% Altitude guess (ft msl)</span>
+    Vtg = 502;      <span class="comment">% Velocity guess (ft/sec)</span>
+    phig = 0;       <span class="comment">% Roll angle from horizontal guess (deg)</span>
+    thetag = 0;     <span class="comment">% Pitch angle guess (deg)</span>
+    xguess = [Vtg 0 0 phig thetag 0 0 0 0 0 0 hg 0];
+
+    <span class="comment">% u = [throttle elevator aileron rudder]</span>
+    uguess = [.2 0 0 0];
+
+    <span class="comment">% Orientation for Linearization</span>
+    <span class="comment">% 1:    Wings Level (gamma = 0)</span>
+    <span class="comment">% 2:    Wings Level (gamma &lt;&gt; 0)</span>
+    <span class="comment">% 3:    Constant Altitude Turn</span>
+    <span class="comment">% 4:    Steady Pull Up</span>
+    orient = 4;
+    inputs = [xguess(1), xguess(12), 0, 0, 0];
+
+    [xequil,uequil] = trimmerFun(xguess,uguess,orient,inputs,printOn);
+<span class="keyword">end</span>
+<span class="keyword">if</span>(nargin==2)
+    printOn=true;
+<span class="keyword">end</span>;
+
+[A, B, C, D] = jacobFun(xequil, uequil, printOn);
+
+<span class="comment">% y = [ Az q alpha theta Vt Ay p r beta phi ]T</span>
+C([2:4 7:10],:) = deg2rad(C([2:4 7:10],:));
+D([2:4 7:10],:) = deg2rad(D([2:4 7:10],:));
+
+<span class="comment">% Build Default Linear SS Model</span>
+lin_f16 = ss(A,B,C,D);
+lin_f16.stateName = {<span class="string">'Vt'</span>, <span class="string">'alpha'</span>, <span class="string">'beta'</span>, <span class="keyword">...</span>
+    <span class="string">'phi'</span>,<span class="string">'theta'</span>,<span class="string">'psi'</span>, <span class="keyword">...</span>
+    <span class="string">'p'</span>, <span class="string">'q'</span>, <span class="string">'r'</span>,<span class="keyword">...</span><span class="comment">.</span>
+    <span class="string">'pn'</span>,<span class="string">'pe'</span>,<span class="string">'alt'</span>,<span class="keyword">...</span>
+    <span class="string">'pow'</span>};
+lin_f16.stateUnit = {<span class="string">'ft/s'</span>, <span class="string">'rad'</span>, <span class="string">'rad'</span>,<span class="keyword">...</span>
+    <span class="string">'rad'</span>,<span class="string">'rad'</span>,<span class="string">'rad'</span>,<span class="keyword">...</span>
+    <span class="string">'rad'</span>,<span class="string">'rad'</span>,<span class="string">'rad'</span>,<span class="keyword">...</span>
+    <span class="string">'ft'</span>, <span class="string">'ft'</span>, <span class="string">'ft'</span>,<span class="string">'lbs'</span>};
+lin_f16.inputName = {<span class="string">'Throttle'</span>,<span class="string">'Elevator'</span>,<span class="string">'Aileron'</span>,<span class="string">'Rudder'</span>};
+lin_f16.inputUnit = {<span class="string">'percent'</span>,<span class="string">'rad'</span>,<span class="string">'rad'</span>,<span class="string">'rad'</span>};
+lin_f16.outputName = {<span class="string">'Az'</span>, <span class="string">'q'</span>, <span class="string">'alpha'</span>, <span class="string">'theta'</span>, <span class="string">'Vt'</span>, <span class="string">'Ay'</span>,<span class="keyword">...</span>
+    <span class="string">'p'</span>, <span class="string">'r'</span>, <span class="string">'beta'</span>, <span class="string">'phi'</span>};
+lin_f16.outputUnit = {<span class="string">'g''s'</span>, <span class="string">'rad/s'</span>, <span class="string">'rad'</span>, <span class="string">'rad'</span>, <span class="string">'ft/s'</span>,<span class="keyword">...</span>
+    <span class="string">'g''s'</span>, <span class="string">'rad/s'</span>, <span class="string">'rad/s'</span>, <span class="string">'rad'</span>, <span class="string">'rad'</span>};
+lin_f16.name = <span class="string">'Linearized F-16 SS Model'</span>;
+
+<span class="keyword">if</span>(printOn)
+    disp(<span class="string">'Linearized F-16 SS Model'</span>)
+    lin_f16
+<span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">------------------------------------------------------------
+Running trimmerFun.m
+
+Throttle (percent):            0.13855
+Elevator (deg):                -0.758238
+Ailerons (deg):                0
+Rudder (deg):                  0
+Angle of Attack (deg):         2.12147
+Sideslip Angle (deg):          0
+Pitch Angle (deg):             2.12147
+Bank Angle (deg):              0
+Normal Acceleration (g):       -0.998384
+Lateral Acceleration (g):      0
+Dynamic Pressure (psf):        299.507
+Mach Number:                   0.449531
+
+Initial Cost Function:         11.2105
+Final Cost Function:           2.7691e-10
+------------------------------------------------------------
+Running jacobFun.m
+Linearized F-16 SS Model
+
+lin_f16 =
+ 
+  A = 
+                  Vt       alpha        beta         phi       theta
+   Vt       -0.01932       8.816  -8.025e-06  -2.975e-06      -32.17
+   alpha  -0.0002538      -1.016    3.28e-06    -1.6e-06  -1.186e-05
+   beta            0           0      -0.322     0.06404           0
+   phi             0           0           0           0           0
+   theta           0           0           0           0           0
+   psi             0           0           0           0           0
+   p               0           0      -30.67           0           0
+   q       3.468e-13      0.8223           0           0           0
+   r               0           0        8.54           0           0
+   pn              1  -9.211e-06           0  -1.717e-06  -7.676e-06
+   pe              0           0         502      -18.58           0
+   alt    -7.077e-16        -502           0    4.64e-06         502
+   pow             0           0           0           0           0
+ 
+                 psi           p           q           r          pn
+   Vt              0           0     -0.5785           0           0
+   alpha           0           0      0.9051           0           0
+   beta            0      0.0365           0     -0.9917           0
+   phi             0           1           0     0.03704           0
+   theta           0           0           1           0           0
+   psi             0           0           0       1.001           0
+   p               0      -3.678   0.0002627      0.6652           0
+   q               0  -8.795e-06      -1.077   -0.002858           0
+   r               0    -0.02554    0.002539     -0.4764           0
+   pn              0           0           0           0           0
+   pe            502           0           0           0           0
+   alt             0           0           0           0           0
+   pow             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Vt              0   1.906e-05      0.4024
+   alpha           0   1.864e-06   -2.97e-05
+   beta            0           0           0
+   phi             0           0           0
+   theta           0           0           0
+   psi             0           0           0
+   p               0           0           0
+   q               0  -2.521e-15           0
+   r               0           0           0
+   pn              0           0           0
+   pe              0           0           0
+   alt             0           0           0
+   pow             0           0          -1
+ 
+  B = 
+           Throttle   Elevator    Aileron     Rudder
+   Vt             0     0.1735          0          0
+   alpha          0   -0.00215          0          0
+   beta           0          0  0.0002951  0.0008056
+   phi            0          0          0          0
+   theta          0          0          0          0
+   psi            0          0          0          0
+   p              0          0    -0.7333     0.1315
+   q              0    -0.1755          0          0
+   r              0          0   -0.03186   -0.06202
+   pn             0          0          0          0
+   pe             0          0          0          0
+   alt            0          0          0          0
+   pow        64.94          0          0          0
+ 
+  C = 
+                  Vt       alpha        beta         phi       theta
+   Az       0.003978        16.2  -4.855e-08           0           0
+   q               0           0           0           0           0
+   alpha           0           1           0           0           0
+   theta           0           0           0           0           1
+   Vt              1           0           0           0           0
+   Ay              0           0       -5.02           0           0
+   p               0           0           0           0           0
+   r               0           0           0           0           0
+   beta            0           0           1           0           0
+   phi             0           0           0           1           0
+ 
+                 psi           p           q           r          pn
+   Az              0  -4.096e-08       0.978   -0.001336           0
+   q               0           0           1           0           0
+   alpha           0           0           0           0           0
+   theta           0           0           0           0           0
+   Vt              0           0           0           0           0
+   Ay              0   -0.008059           0      0.1192           0
+   p               0           1           0           0           0
+   r               0           0           0           1           0
+   beta            0           0           0           0           0
+   phi             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Az              0  -2.906e-05           0
+   q               0           0           0
+   alpha           0           0           0
+   theta           0           0           0
+   Vt              0           0           0
+   Ay              0           0           0
+   p               0           0           0
+   r               0           0           0
+   beta            0           0           0
+   phi             0           0           0
+ 
+  D = 
+          Throttle  Elevator   Aileron    Rudder
+   Az            0  -0.04848         0         0
+   q             0         0         0         0
+   alpha         0         0         0         0
+   theta         0         0         0         0
+   Vt            0         0         0         0
+   Ay            0         0    0.0046   0.01256
+   p             0         0         0         0
+   r             0         0         0         0
+   beta          0         0         0         0
+   phi           0         0         0         0
+ 
+Name: Linearized F-16 SS Model
+Continuous-time state-space model.
+
+
+ans =
+ 
+  A = 
+                  Vt       alpha        beta         phi       theta
+   Vt       -0.01932       8.816  -8.025e-06  -2.975e-06      -32.17
+   alpha  -0.0002538      -1.016    3.28e-06    -1.6e-06  -1.186e-05
+   beta            0           0      -0.322     0.06404           0
+   phi             0           0           0           0           0
+   theta           0           0           0           0           0
+   psi             0           0           0           0           0
+   p               0           0      -30.67           0           0
+   q       3.468e-13      0.8223           0           0           0
+   r               0           0        8.54           0           0
+   pn              1  -9.211e-06           0  -1.717e-06  -7.676e-06
+   pe              0           0         502      -18.58           0
+   alt    -7.077e-16        -502           0    4.64e-06         502
+   pow             0           0           0           0           0
+ 
+                 psi           p           q           r          pn
+   Vt              0           0     -0.5785           0           0
+   alpha           0           0      0.9051           0           0
+   beta            0      0.0365           0     -0.9917           0
+   phi             0           1           0     0.03704           0
+   theta           0           0           1           0           0
+   psi             0           0           0       1.001           0
+   p               0      -3.678   0.0002627      0.6652           0
+   q               0  -8.795e-06      -1.077   -0.002858           0
+   r               0    -0.02554    0.002539     -0.4764           0
+   pn              0           0           0           0           0
+   pe            502           0           0           0           0
+   alt             0           0           0           0           0
+   pow             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Vt              0   1.906e-05      0.4024
+   alpha           0   1.864e-06   -2.97e-05
+   beta            0           0           0
+   phi             0           0           0
+   theta           0           0           0
+   psi             0           0           0
+   p               0           0           0
+   q               0  -2.521e-15           0
+   r               0           0           0
+   pn              0           0           0
+   pe              0           0           0
+   alt             0           0           0
+   pow             0           0          -1
+ 
+  B = 
+           Throttle   Elevator    Aileron     Rudder
+   Vt             0     0.1735          0          0
+   alpha          0   -0.00215          0          0
+   beta           0          0  0.0002951  0.0008056
+   phi            0          0          0          0
+   theta          0          0          0          0
+   psi            0          0          0          0
+   p              0          0    -0.7333     0.1315
+   q              0    -0.1755          0          0
+   r              0          0   -0.03186   -0.06202
+   pn             0          0          0          0
+   pe             0          0          0          0
+   alt            0          0          0          0
+   pow        64.94          0          0          0
+ 
+  C = 
+                  Vt       alpha        beta         phi       theta
+   Az       0.003978        16.2  -4.855e-08           0           0
+   q               0           0           0           0           0
+   alpha           0           1           0           0           0
+   theta           0           0           0           0           1
+   Vt              1           0           0           0           0
+   Ay              0           0       -5.02           0           0
+   p               0           0           0           0           0
+   r               0           0           0           0           0
+   beta            0           0           1           0           0
+   phi             0           0           0           1           0
+ 
+                 psi           p           q           r          pn
+   Az              0  -4.096e-08       0.978   -0.001336           0
+   q               0           0           1           0           0
+   alpha           0           0           0           0           0
+   theta           0           0           0           0           0
+   Vt              0           0           0           0           0
+   Ay              0   -0.008059           0      0.1192           0
+   p               0           1           0           0           0
+   r               0           0           0           1           0
+   beta            0           0           0           0           0
+   phi             0           0           0           0           0
+ 
+                  pe         alt         pow
+   Az              0  -2.906e-05           0
+   q               0           0           0
+   alpha           0           0           0
+   theta           0           0           0
+   Vt              0           0           0
+   Ay              0           0           0
+   p               0           0           0
+   r               0           0           0
+   beta            0           0           0
+   phi             0           0           0
+ 
+  D = 
+          Throttle  Elevator   Aileron    Rudder
+   Az            0  -0.04848         0         0
+   q             0         0         0         0
+   alpha         0         0         0         0
+   theta         0         0         0         0
+   Vt            0         0         0         0
+   Ay            0         0    0.0046   0.01256
+   p             0         0         0         0
+   r             0         0         0         0
+   beta          0         0         0         0
+   phi           0         0         0         0
+ 
+Name: Linearized F-16 SS Model
+Continuous-time state-space model.
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [ lin_f16 ] = getLinF16( xequil,uequil,printOn )
+%Given equilibrium trim and controls, returns a linearized state space 
+% model of the F-16.
+%
+%   Function Call:
+%       lin_f16 = getLinF16( xequil,uequil)
+%       lin_f16 = getLinF16( xequil,uequil,printOn )
+%
+%   Inputs:
+%       xequil  -   Equilibrium states (13x1)
+%       uequil  -   Equilibrium control (4x1)
+%       printOn -   If true, prints intermediate data
+%
+%   Outputs:
+%       lin_f16 -   labeled state space model of f16 
+%                   (13 state, 4 control, 10 output) 
+%
+%   x_f16 states:
+%       x_f16(1)  = air speed, VT                           (ft/s)
+%       x_f16(2)  = angle of attack, alpha                  (rad)
+%       x_f16(3)  = angle of sideslip, beta                 (rad)
+%       x_f16(4)  = roll angle, phi                         (rad)
+%       x_f16(5)  = pitch angle, theta                      (rad)
+%       x_f16(6)  = yaw angle, psi                          (rad)
+%       x_f16(7)  = roll rate, P                            (rad/s)
+%       x_f16(8)  = pitch rate, Q                           (rad/s)
+%       x_f16(9)  = yaw rate, R                             (rad/s)
+%       x_f16(10) = northward horizontal displacement, pn   (ft)
+%       x_f16(11) = eastward horizontal displacement, pe    (ft)
+%       x_f16(12) = altitude, h                             (ft)
+%       x_f16(13) = engine thrust dynamics lag state, pow   (lbs)
+%
+%   x_f16 controls:
+%       u(1) = throttle                                     (0 to 1)
+%       u(2) = elevator                                     (rad?) 
+%       u(3) = aileron                                      (rad?)
+%       u(4) = rudder                                       (rad?)
+%
+% <a href="https://github.com/pheidlauf/AeroBenchVV">AeroBenchVV</a>
+% Copyright: GNU General Public License 2017
+%
+% See also: TRIMMERFUN, JACOBFUN
+
+if(nargin==0)   
+    printOn = true; 
+    % SET THESE VALUES MANUALLY
+    hg = 0;         % Altitude guess (ft msl)
+    Vtg = 502;      % Velocity guess (ft/sec)
+    phig = 0;       % Roll angle from horizontal guess (deg)
+    thetag = 0;     % Pitch angle guess (deg)
+    xguess = [Vtg 0 0 phig thetag 0 0 0 0 0 0 hg 0];
+
+    % u = [throttle elevator aileron rudder]
+    uguess = [.2 0 0 0];
+
+    % Orientation for Linearization
+    % 1:    Wings Level (gamma = 0)
+    % 2:    Wings Level (gamma <> 0)
+    % 3:    Constant Altitude Turn
+    % 4:    Steady Pull Up
+    orient = 4;
+    inputs = [xguess(1), xguess(12), 0, 0, 0];
+   
+    [xequil,uequil] = trimmerFun(xguess,uguess,orient,inputs,printOn);
+end
+if(nargin==2)
+    printOn=true;
+end;
+
+[A, B, C, D] = jacobFun(xequil, uequil, printOn);
+
+% y = [ Az q alpha theta Vt Ay p r beta phi ]T
+C([2:4 7:10],:) = deg2rad(C([2:4 7:10],:));
+D([2:4 7:10],:) = deg2rad(D([2:4 7:10],:));
+
+% Build Default Linear SS Model
+lin_f16 = ss(A,B,C,D);
+lin_f16.stateName = {'Vt', 'alpha', 'beta', ...
+    'phi','theta','psi', ...
+    'p', 'q', 'r',....
+    'pn','pe','alt',...
+    'pow'};
+lin_f16.stateUnit = {'ft/s', 'rad', 'rad',...
+    'rad','rad','rad',...
+    'rad','rad','rad',...
+    'ft', 'ft', 'ft','lbs'};
+lin_f16.inputName = {'Throttle','Elevator','Aileron','Rudder'};
+lin_f16.inputUnit = {'percent','rad','rad','rad'};
+lin_f16.outputName = {'Az', 'q', 'alpha', 'theta', 'Vt', 'Ay',...
+    'p', 'r', 'beta', 'phi'};
+lin_f16.outputUnit = {'g''s', 'rad/s', 'rad', 'rad', 'ft/s',...
+    'g''s', 'rad/s', 'rad/s', 'rad', 'rad'};
+lin_f16.name = 'Linearized F-16 SS Model';
+
+if(printOn)
+    disp('Linearized F-16 SS Model')
+    lin_f16
+end
+
+end
+##### SOURCE END #####
+--></body></html>
