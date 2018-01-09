@@ -14,7 +14,9 @@ This package was modified and tailored for this project to generate visualizatio
 
 ### Citations
 Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson. Aircraft control and simulation: dynamics, controls design, and autonomous systems. John Wiley & Sons, 2015.  
+
 Morelli, Eugene A. "Global nonlinear parametric modelling with application to F-16 aerodynamics." American Control Conference, 1998. Proceedings of the 1998. Vol. 2. IEEE, 1998.
+
 Bużantowicz W. "Matlab Script for 3D Visualization of Missile and Air Target Trajectories".International Journal of Computer and Information Technology 5 (2016)5, pp. 419-422.
 
 ### Release Documentation
