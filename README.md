@@ -1,5 +1,5 @@
 # AeroBenchVV
-Additional documentation will be added to this document as it is created.
+Additional documentation will be added as it is created.
 
 ## F16_Model
 This directory contains a nonlinear mathematical model of the F-16 aircraft published in _Aircraft Control and Simulation: Dynamics, Controls Design, and Autonomous Systems_. This model uses lookup tables to access the aero data for the model. As well, a polynomial model fit to the lookup table data (developed by Eugene Morelli) is included.
