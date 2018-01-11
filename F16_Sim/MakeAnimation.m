@@ -1,3 +1,4 @@
+
 % Animates and saves a 3D animation of the aircraft path and attitude
 % throughout the maneuver. Pass/fail conditions are displayed in the image.
 % This script requires that "SimResults.mat" exists in the workspace. This
@@ -10,10 +11,10 @@
 % See also: RUNF16SIM, NEW_OBJECT, FLYPATH
 
 %% Create animation of F16 Maneuver
+close all;
 cd('../flypath3d');
 package_setup;
 cd('../F16_Sim');
-close all; clear; clc;
 load('SimResults');
 
 % Flypath3D Trajectory Visualization

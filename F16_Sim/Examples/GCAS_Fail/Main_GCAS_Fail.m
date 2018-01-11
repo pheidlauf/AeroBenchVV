@@ -69,5 +69,5 @@ plotOn = true;
 save('SimResults.mat','output','passFail');
 
 % Generate Renderings using a modified version of flypath3d
-% MakePicture;
-% MakeAnimation;
+MakePicture;
+MakeAnimation;

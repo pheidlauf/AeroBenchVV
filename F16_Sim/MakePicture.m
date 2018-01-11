@@ -10,10 +10,13 @@
 % See also: RUNF16SIM, NEW_OBJECT, FLYPATH
 
 %% Create animation of F16 Maneuver
+close all;
+% Navigate to flypath package
 cd('../flypath3d');
+% Run package setup
 package_setup;
-cd('../F16_GCAS_V2');
-close all; clear; clc;
+% Return to Sim folder
+cd('../F16_Sim');
 load('SimResults');
 
 % Flypath3D Trajectory Visualization

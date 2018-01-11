@@ -12,10 +12,9 @@
 
 %% Add all needed paths (if not manually added)
 close all; clear; clc;
-% cd('../')
-% addpath(genpath('F16_Model'));
-% addpath(genpath('F16_Sim'));
-% cd('F16_Sim')
+addpath(genpath('../F16_Model'));
+addpath(genpath('../F16_Sim'));
+addpath(genpath('../flypath3d'));
 
 %% Set Initial Conditions
 powg = 9;                   % Power
@@ -75,5 +74,5 @@ plotOn = true;
 save('SimResults.mat','output','passFail');
 
 % Generate Renderings using a modified version of flypath3d
-% MakePicture;
-% MakeAnimation;
+MakePicture;
+MakeAnimation;
