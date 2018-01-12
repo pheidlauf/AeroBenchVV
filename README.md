@@ -1,8 +1,9 @@
 # AeroBenchVV
+To run the  ground collision avoidance benchmark and create the output_pic.png image, output_animation.gif animation and SimResults.mat data file, , use Matlab to set the F16_Sim folder as your working directory and execute the Main.m script. Note creating the .gif animation takes the longest time, so you might want to eventually disable that by commenting out "MakeAnimation;" at the bottom of the script.
+
 Additional documentation will be added as it is created.
 
 ## Overview
-
 
 ## Structure
 ### F16_Model
