@@ -34,7 +34,7 @@ global az ay;
 % The following is the c.g. location which can be modified (nominal is xcg=.35)
 %% BEGIN HEIDLAUF EDIT
 if(nargin==2)
-    xcg = 0.35;
+    xcg = 0.35; % 0.35 = pass, 0.2 = fail
 end
 
 %% END HEIDLAUF EDIT

@@ -1,5 +1,29 @@
 # AeroBenchVV
-To run the ground collision avoidance benchmark and create the output_pic.png image, output_animation.gif animation and SimResults.mat data file (in the F16_Sim folder), use Matlab to set the F16_Sim folder as your working directory and run the Main.m script. Note creating the .gif animation takes the longest time, so you might want to eventually disable that by commenting out "MakeAnimation;" at the bottom of the script.
+AeroBenchVV is a (simple) set of benchmark models and controllers for testing automated aircraft maneuvers. The hope is to extend verification and analysis methods beyond Dubin's car models towards the sorts of models used in aerospace engineering. Compared to actual aerospace models used in practice, however, it is still fairly simple. The dynamics are given entirely in human-readable matlab .m code, without the need for additional toolboxes. Ode45 is used to simulate the system, and a plot (or animation) of the resultant maneuver can be generated.
+
+To run the ground collision avoidance system (GCAS) benchmark and create the output_pic.png image, output_animation.gif animation and SimResults.mat data file (in the F16_Sim folder), use Matlab to set the F16_Sim folder as your working directory and run the Main.m script. Note creating the .gif animation takes the longest time, so you might want to eventually disable that by commenting out "MakeAnimation;" at the bottom of the script.
+
+You can modify the initial states or model to see how it affects the aircraft maneuver. There are two aircraft dynamics models available, a lookup-table version (from Stevens & Lewis [1]), and a polynomial version (from Morelli [2]). You can choose the model to simulate in Main.m. There is also a partial linear version of the plant model, which is likely less accurate. See the code starting at line 116 on controlledF16.m for how this gets selected.
+
+The low-level controller is a decoupled LQR controller, with the gains given around line 181 of RunF16Sim.m.
+
+You can modify the models or controllers, and see how the maneuver is affected. For example, if you change the center of gravity x position, xcg, from 0.35 to 0.2 (line 37 on subf16_morelli.m), the GCAS system will fail to recover the system. Reachability questions can then be considered about sets of initial states, and sets of model parameters, such as "What range of xcg is guaranteed recoverable?" We plan to release more specific cases with the publication which is currently being prepared.
+
+If you run the script without MakePicture or MakeAnimation (and analysisOn and printOn is set), there will be output printed in matlab:
+
+Pass Fail Conditions:
+           stable: 1
+         airspeed: 1
+            alpha: 1
+             beta: 1
+               Nz: 1
+    psMaxAccelDeg: 1
+         altitude: 1
+     maneuverTime: 1
+     
+This indicates a series of specifications for the system, and if the maneuver met them. All 1's means every specification was met. A failing specification means there was problem. For example, if your altitude goes below 0, the altitude spec will fail. The specific conditions are given starting on line 360 in RunF16Sim.m.
+
+The autopilot and model can be used for more than just GCAS testing. See the autopilot structure in getDefaultSettings.m around line 58. In Main.m on line 52, 'autopilot.simpleGCAS = true' is assigned, indicating the high-level GCAS logic should be active. The actual high-level controller logic is performed in getAutoPilotCommands.m. This logic can also be modified for verification analysis as well. For example, line 114 sets the desired acceleration of the maneuver to 5 g's, which could be adjusted to make the setup more or less aggressive.
 
 Additional documentation will be added as it is created.
 
@@ -13,19 +37,21 @@ This directory contains a nonlinear mathematical model of the F-16 aircraft publ
 This directory contains all of the Matlab scripts and functions used to simulate and analyze autonomous maneuvers of the aforementioned F-16 models.
 
 ### flypath3d
+Flypath3d is an aircraft visualization library for Matlab [3].
+
 "The flypath3d package a free Matlab software for 3D visualizations of missile and air target trajectories that provide a visual reference for the computer simulation. Because of its versatility and ease of use, the software can help to produce attractive presentations for various scientific or public outreach purposes."
 
 This package was modified and tailored for this project to generate visualizations of F-16 autonomous maneuvers with a text overlay of state data and pass/fail conditions.
 
 ## Citations
 
-If you plan on presenting or publishing work done on this benchmark, please contact me at peter.heidlauf.1@us.af.mil for the citation. I am currently working on a conference paper detailing this benchmark.
+If you plan on presenting or publishing work done on this benchmark, please contact us at peter.heidlauf.1@us.af.mil for the upcoming citation information. We are currently working on a paper detailing this benchmark.
 
-Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson. Aircraft control and simulation: dynamics, controls design, and autonomous systems. John Wiley & Sons, 2015.  
+[1] Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson. Aircraft control and simulation: dynamics, controls design, and autonomous systems. John Wiley & Sons, 2015.  
 
-Morelli, Eugene A. "Global nonlinear parametric modelling with application to F-16 aerodynamics." American Control Conference, 1998. Proceedings of the 1998. Vol. 2. IEEE, 1998.
+[2] Morelli, Eugene A. "Global nonlinear parametric modelling with application to F-16 aerodynamics." American Control Conference, 1998. Proceedings of the 1998. Vol. 2. IEEE, 1998.
 
-Bużantowicz W. "Matlab Script for 3D Visualization of Missile and Air Target Trajectories".International Journal of Computer and Information Technology 5 (2016)5, pp. 419-422.
+[3] Bużantowicz W. "Matlab Script for 3D Visualization of Missile and Air Target Trajectories".International Journal of Computer and Information Technology 5 (2016)5, pp. 419-422.
 
 ### Release Documentation
 Distribution A: Approved for Public Release (88ABW-2017-6379)
