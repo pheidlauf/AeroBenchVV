@@ -12,7 +12,7 @@ The low-level controller is a decoupled LQR controller, with the gains given aro
 You can modify the models or controllers, and see how the maneuver is affected. For example, if you change the center of gravity x position, xcg, from 0.35 to 0.2 (line 37 on subf16_morelli.m), the GCAS system will fail to recover the system. Reachability questions can then be considered about sets of initial states, and sets of model parameters, such as "What range of xcg is guaranteed recoverable?" We plan to release more specific cases with the publication which is currently being prepared.
 
 If you run the script without MakePicture or MakeAnimation (and analysisOn and printOn is set), there will be output printed in matlab:
-
+```matlab
 Pass Fail Conditions:  
            stable: 1  
          airspeed: 1  
@@ -22,7 +22,7 @@ Pass Fail Conditions:
     psMaxAccelDeg: 1  
          altitude: 1  
      maneuverTime: 1  
-     
+```    
 This indicates a series of specifications for the system, and if the maneuver met them. All 1's means every specification was met. A failing specification means there was problem. For example, if your altitude goes below 0, the altitude spec will fail. The specific conditions are given starting on line 360 in RunF16Sim.m.
 
 The autopilot and model can be used for more than just GCAS testing. See the autopilot structure in getDefaultSettings.m around line 58. In Main.m on line 52, 'autopilot.simpleGCAS = true' is assigned, indicating the high-level GCAS logic should be active. The actual high-level controller logic is performed in getAutoPilotCommands.m. This logic can also be modified for verification analysis as well. For example, line 114 sets the desired acceleration of the maneuver to 5 g's, which could be adjusted to make the setup more or less aggressive.
