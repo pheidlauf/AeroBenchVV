@@ -45,7 +45,7 @@ Flypath3d is an aircraft visualization library for Matlab [3].
 This package was modified and tailored for this project to generate visualizations of F-16 autonomous maneuvers with a text overlay of state data and pass/fail conditions.
 
 ## Real Automated Ground Collision Avoidance System
-This benchmark was inspired by a real F-16 GCAS system that was recently developed by Lockheed Martin, NASA, and the Air Force Research Lab. As of the start of 2018, the system has been confirmed as saving six aircraft (~$25 million each) and seven lives. However, this academic benchmark code and recovery logic are in no way connected to the code or methodology used in the real thing. For more information on the real system, including a video of one of the 'confirmed saves', see [this article in Aviation Weekly](http://aviationweek.com/air-combat-safety/auto-gcas-saves-unconscious-f-16-pilot-declassified-usaf-footage).
+This benchmark was inspired by a real F-16 GCAS system that was recently developed by Lockheed Martin, NASA, and the Air Force Research Lab. As of the start of 2018, the system has been confirmed as saving six aircraft (~$25 million each) and seven lives. However, this academic benchmark code and recovery logic are in no way connected to the code or methodology used in the real thing. For more information on the real system, including a video of one of the 'confirmed saves', see [this article in Aviation Week](http://aviationweek.com/air-combat-safety/auto-gcas-saves-unconscious-f-16-pilot-declassified-usaf-footage).
 
 ## Citations
 
