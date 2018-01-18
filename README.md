@@ -1,4 +1,7 @@
 # AeroBenchVV
+
+<p align="center"> <img src="gcas.gif"/> </p>
+
 This project contains a set of benchmark models and controllers that tests automated aircraft maneuvers by performing simulations. The hope is to provide a benchmark to motivate better verification and analysis methods, working beyond models based on Dubin's car dynamics, towards the sorts of models used in aerospace engineering. Compared to actual aerospace models used in practice, however, this model is still very simple. Roughly speaking, the dynamics are nonlinear, hybrid, with tens of dimensions (state variables). The dynamics are given entirely in human-readable matlab .m code, without the need for additional Matlab toolboxes. Ode45 is used to simulate the system, pass/fail specifications are checked against the simulated maneuver, and a plot (or animation) of the resultant flight path can be generated.
 
 To run the ground collision avoidance system (GCAS) benchmark and create the output_pic.png image, output_animation.gif animation and SimResults.mat data file (in the F16_Sim folder), use Matlab to set the F16_Sim folder as your working directory and run the Main.m script. Note creating the .gif animation takes the longest time, so you might want to eventually disable that by commenting out "MakeAnimation;" at the bottom of the script.
