@@ -12,7 +12,7 @@ The low-level controller is a decoupled LQR controller, with the gains given aro
 You can modify the models or controllers, and see how the maneuver is affected. For example, if you change the center of gravity x position, xcg, from 0.35 to 0.2 (line 37 on subf16_morelli.m), the GCAS system will fail to recover the system. Reachability questions can then be considered about sets of initial states, and sets of model parameters, such as "What range of xcg is guaranteed recoverable?" We plan to release more specific cases with the publication which is currently being prepared.
 
 If you run the script without MakePicture or MakeAnimation (and analysisOn and printOn is set), there will be output printed in matlab:
-```matlab
+```
 Pass Fail Conditions:  
            stable: 1  
          airspeed: 1  
