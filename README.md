@@ -1,4 +1,4 @@
-<p align="center"> <img src="gcas.gif"/> </p>
+﻿<p align="center"> <img src="gcas.gif"/> </p>
 
 # AeroBenchVV Overview
 This project contains a set of benchmark models and controllers that tests automated aircraft maneuvers by performing simulations. The hope is to provide a benchmark to motivate better verification and analysis methods, working beyond models based on Dubin's car dynamics, towards the sorts of models used in aerospace engineering. Compared to actual aerospace models used in practice, however, these models are still very simple. Roughly speaking, the dynamics are nonlinear, have about 10-20 dimensions (continuous state variables), and hybrid in the sense of discontinuous ODEs, but not with jumps in the state. The dynamics are given entirely in human-readable matlab .m code, without the need for additional Matlab toolboxes. Ode45 is used to simulate the system, pass/fail specifications are checked against the simulated maneuver, and a plot (or animation) of the resultant flight path can be generated.
@@ -45,6 +45,9 @@ This package was modified and tailored for this project to generate visualizatio
 
 ## Real Automated Ground Collision Avoidance System
 This benchmark was inspired by a real F-16 GCAS system that was recently developed by Lockheed Martin, NASA, and the Air Force Research Lab. As of the start of 2018, the system has been confirmed as saving six aircraft (~$25 million each) and seven lives. However, this academic benchmark code and recovery logic are in no way connected to the code or methodology used in the real thing. For more information on the real system, including a video of one of the 'confirmed saves', see [this article in Aviation Week](http://aviationweek.com/air-combat-safety/auto-gcas-saves-unconscious-f-16-pilot-declassified-usaf-footage).
+
+## Feature Requests & Issues
+If you discover errors or incompatibilities within the code library, please let me know by submitting a New Issue on GitHub. Also, if you require the library to be reorganized for better integration with  your analysis tools and you believe that the changes would benefit most people, submit a feature request using the "Issues" tool. I may be able to integrate a fix in the master branch or help advise you on how to modify the library in a fork.
 
 ## Citations
 
