@@ -46,19 +46,22 @@ function [Xequil,Uequil]=trimmerFun(Xguess,Uguess,orient,inputs,printOn)
 
 global ay az
 
-
-
 format long
 
-if(nargin==2)
+if(nargin>=2)
     x=Xguess;
     u=Uguess;
-elseif(nargin<5)
-    printOn = 0;
 else
+    % If called with insufficient args
+    warning('Defaulting to zero states for initial trim guess');
     x=zeros(13,1);
     u=zeros(4,1);
 end
+
+if(nargin<5)
+    printOn = 0;
+end
+
 
 if(printOn);
     disp('------------------------------------------------------------');
