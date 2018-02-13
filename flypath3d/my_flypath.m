@@ -306,7 +306,7 @@ for i = 1:pStep:maxLength
         
         % Nz & P
         Nz = telemetry.states.Nz_hist(i);
-        ps = telemetry.states.ps_hist(i);
+        ps = rad2deg(telemetry.states.ps_hist(i));
         if(Nz < telemetry.flightLimits.NzMax && ...
                 Nz > telemetry.flightLimits.NzMin)
             % Nz Pass
