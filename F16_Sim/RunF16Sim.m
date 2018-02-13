@@ -124,6 +124,8 @@ end
 % Format initial Conditions for Simulation and append integral error states
 x0 = [initialState'; 0; 0; 0];
 
+%{ 
+% REPLACED CONTROLLER & TRIM POINT WITH HARD-CODED VALUES
 % Define Control Guess
 uguess = [.2 0 0 0];
 
@@ -152,14 +154,14 @@ if(printOn)
 end
 
 % Get Equilibrium Values
-% [xequil,uequil] = trimmerFun(initialState, uguess, orient, inputs, false);
+[xequil,uequil] = trimmerFun(initialState, uguess, orient, inputs, false);
+%}
 
 % Hard-coded equilibrium conditions at LQR design point.
 xequil = [502 0.0389 0 0 0.0389 0 0 0 0 0 0 1000 9.0567]';
 uequil = [0.1395 -0.7496 0 0]';
 
 if(printOn)
-    disp('------------------------------------------------------------');
     disp('Equilibrium / Trim Conditions');
     printmat(xequil','State Equilibrium',[],...
         'Vt alpha beta phi theta psi p q r pn pe alt pow');
