@@ -67,9 +67,9 @@ end
 [xequil,uequil] = trimmerFun(xguess,uguess,orient,inputs,printOn);
 
 if(printOn)
-    printmat(xequil','State Equilibrium (ft, rads, etc.)',[],...
+    printmat(xequil,'State Equilibrium (ft, rads, etc.)',[],...
         'Vt alpha beta phi theta psi p q r pn pe alt pow');
-    printmat(uequil','Control Equilibrium (% & degs)',[],...
+    printmat(uequil,'Control Equilibrium (% & degs)',[],...
         'throttle elevator aileron rudder');
 end
 
@@ -147,7 +147,7 @@ figure(2);
 opt = stepDataOptions('StepAmplitude',1);
 step(sys_cl_long,3,opt)
 
-save('longitudinalCtrlData.mat','K_long','sys_cl_long');
+save('longitudinalCtrlData.mat','K_long','sys_cl_long','xequil','uequil');
 printmat(K_long,'LQR Gains','elevator',...
     'alpha q int_e_Nz');
 

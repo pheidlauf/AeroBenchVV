@@ -67,9 +67,9 @@ end
 [xequil,uequil] = trimmerFun(xguess, uguess, orient, inputs, printOn);
 
 if(printOn)
-    printmat(xequil','State Equilibrium',[],...
+    printmat(xequil,'State Equilibrium',[],...
         'Vt alpha beta phi theta psi p q r pn pe alt pow');
-    printmat(uequil','Control Equilibrium',[],...
+    printmat(uequil,'Control Equilibrium',[],...
         'throttle elevator aileron rudder');
 end
 
@@ -166,7 +166,7 @@ figure(2);
 margin(OLTF(5,2))
 
 % Output results to .mat file
-save('lateralCtrlData.mat','K_lat','sys_cl_lat');
+save('lateralCtrlData.mat','K_lat','sys_cl_lat','xequil','uequil');
 
 % View Damping Ratio & Frequency of Poles
 damp(eig(sys_cl_lat.a))
