@@ -470,7 +470,9 @@ for i = 1:pStep:maxLength
     if strcmp(pAnimate,'on') == 1
         drawnow;
     end;
-    % --- save the results to the gif file ---
+    %{
+    % BACKUP OF ORIGINAL GIF CODE
+    % --- save the results to a .gif file ---
     if strcmp(pAnimate,'on') == 1
         if strcmp(pOutput,'none') ~= 1
             frame = getframe(1);
@@ -480,6 +482,24 @@ for i = 1:pStep:maxLength
                 imwrite(A,map,pOutput,'gif','LoopCount',Inf,'DelayTime',.04);
             else
                 imwrite(A,map,pOutput,'gif','WriteMode','append','DelayTime',.04);
+            end;
+        end;
+    end;
+    %}
+    % NEW CODE TO SAVE AS MP4
+    % --- save the results to a .mp4 file ---
+    if strcmp(pAnimate,'on') == 1
+        if strcmp(pOutput,'none') ~= 1
+            frame = getframe(1);
+            if i == 1;                
+                % Start video object
+                v = VideoWriter(pOutput,'MPEG-4');
+                v.FrameRate = 30; % Use this to set speed of animation
+                v.Quality = 100;
+                open(v);
+                writeVideo(v,frame);
+            else
+                writeVideo(v,frame);
             end;
         end;
     end;
@@ -501,5 +521,6 @@ if strcmp(pAnimate,'off') == 1
     end;
 end;
 
-
+% Close video object
+close(v);
 end

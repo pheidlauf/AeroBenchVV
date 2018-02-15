@@ -240,8 +240,6 @@ lin_Nz_hist = zeros(1,length(time));    % Nz (linear approximation)
 lin_Ny_r_hist = zeros(1,length(time));    % Ny (linear approximation)
 
 % Recall GCAS time steps from persistent memory of getAutopilotCommands
-% [~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil,...
-%     ctrlLimits, false);
 [~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil, ...
     flightLimits, ctrlLimits, autopilot, false);
 
@@ -282,7 +280,7 @@ end
 
 % Determine ps acceleration (rad/s/s)
 ps_accels = zeros(1,length(ps_hist));
-ps_accels(1) = 1;
+ps_accels(1) = 0;
 for i = 2:length(ps_hist)
     ps_accels(i) = (ps_hist(i) - ps_hist(i-1))/(time(i) - time(i-1));
 end
@@ -402,7 +400,7 @@ else
 end
 
 % Check Ps_rate limits
-if(max_ps_accel > flightLimits.psMaxAccelDeg)
+if(rad2deg(max_ps_accel) > flightLimits.psMaxAccelDeg)
     passFail.psMaxAccelDeg = false;
 else
     passFail.psMaxAccelDeg = true;

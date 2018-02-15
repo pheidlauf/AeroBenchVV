@@ -88,7 +88,7 @@ C_lat = [lin_f16.c([9 7 8],[3 7 9]);
     (lin_f16.c(7,[3 7 9]) + lin_f16.c(8,[3 7 9])*xequil(2));
     lin_f16.c(6,[3 7 9]) + [0 0 1]];  
 D_lat = [zeros(4,2); 
-    lin_f16.d(5,[3 4])];
+    lin_f16.d(6,[3 4])];
 
 Atilde = [A_lat zeros(3,2);           % beta; phi; p; r;
         [C_lat(4:5,:) zeros(2)]];     % ps; Ny+r
