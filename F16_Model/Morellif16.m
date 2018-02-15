@@ -5,11 +5,13 @@ function [Cx,Cy,Cz,Cl,Cm,Cn]=Morellif16(alpha,beta,de,da,dr,p,q,r,cbar,b,V,xcg,x
 %length
 %All angles are assumed to be inputed as radian measurments
 
-alpha=max(-10*pi/180,min(45*pi/180,alpha)); %bounds alpha between -10 deg and 45 deg
-beta=max(-30*pi/180,min(30*pi/180,beta));   %bounds beta between -30 deg and 30 deg
-de=max(-25*pi/180,min(25*pi/180,de));   %bounds elevator deflection between -25 deg and 25 deg
-da=max(-21.5*pi/180,min(21.5*pi/180,da));   %bounds aileron deflection between -21.5 deg and 21.5 deg
-dr=max(-30*pi/180,min(30*pi/180,dr));   %bounds rudder deflection between -30 deg and 30 deg
+% BEGIN HEIDLAUF EDIT
+% alpha=max(-10*pi/180,min(45*pi/180,alpha)); %bounds alpha between -10 deg and 45 deg
+% beta=max(-30*pi/180,min(30*pi/180,beta));   %bounds beta between -30 deg and 30 deg
+% de=max(-25*pi/180,min(25*pi/180,de));   %bounds elevator deflection between -25 deg and 25 deg
+% da=max(-21.5*pi/180,min(21.5*pi/180,da));   %bounds aileron deflection between -21.5 deg and 21.5 deg
+% dr=max(-30*pi/180,min(30*pi/180,dr));   %bounds rudder deflection between -30 deg and 30 deg
+% END HEIDLAUF EDIT
 
 % xcgref=0.35;    %reference longitudinal cg position in Morelli f16 model
    

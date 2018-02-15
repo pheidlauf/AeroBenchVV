@@ -99,4 +99,5 @@ xd(12)=u*sth-v*s5-w*s8;
 xa=15.0;                  % sets distance normal accel is in front of the c.g. (xa=15.0 at pilot)
 az=az-xa*xd(8);           % moves normal accel in front of c.g.
 
-
+% ADDED BY HEIDLAUF
+ay=ay+xa*xd(9);           % moves side accel in front of c.g.

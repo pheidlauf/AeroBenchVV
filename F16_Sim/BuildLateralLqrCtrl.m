@@ -77,20 +77,20 @@ end
 lin_f16 = getLinF16(xequil,uequil,printOn);
 
 %% Decouple Linearized F-16 Model: Isolate Lateral States & Actuators
-% States:   beta, phi, p, r
+% States:   beta, p, r
 A_lat = lin_f16.a([3 7 9], [3 7 9]); 
 
 % Inputs:   aileron, rudder
 B_lat = lin_f16.b([3 7 9], [3 4]);     
 
-% Outputs:  beta, phi, p, r, ps, Ny+r   
+% Outputs:  beta, p, r, ps, Ny+r   
 C_lat = [lin_f16.c([9 7 8],[3 7 9]);
     (lin_f16.c(7,[3 7 9]) + lin_f16.c(8,[3 7 9])*xequil(2));
     lin_f16.c(6,[3 7 9]) + [0 0 1]];  
 D_lat = [zeros(4,2); 
     lin_f16.d(6,[3 4])];
 
-Atilde = [A_lat zeros(3,2);           % beta; phi; p; r;
+Atilde = [A_lat zeros(3,2);           % beta; p; r;
         [C_lat(4:5,:) zeros(2)]];     % ps; Ny+r
 Btilde = [B_lat; D_lat(4:5,:)];
 
@@ -113,7 +113,7 @@ R = diag([r_aileron r_rudder]);
 N = 0;
 K_lat = lqr(Atilde,Btilde,Q,R,N);
 
-% K:                beta   phi    p    r    ps_i    Ny
+% K:                beta   p    r    ps_i    Ny
 %       aileron:
 %        rudder:
 printmat(K_lat,'LQR Gains','aileron rudder',...
@@ -126,12 +126,12 @@ ss_lat=ss(A_lat,B_lat,...
 ss_lat.u={'aileron','rudder'};              % Controls: aileron, rudder
 ss_lat.StateName = {'beta','p','r'};
 ss_lat.y={'beta','p','r','ps','Ny_r','ail_out',...
-    'rud_out'};   % Outputs: beta, phi, p, r, ps, ail_cmd, rud_cmd
+    'rud_out'};   % Outputs: beta, p, r, ps, ail_cmd, rud_cmd
 
-% Proportional Compensator (using beta, phi, r)
+% Proportional Compensator (using beta, r)
 ss_Kpx=ss(zeros(2,2),zeros(2,3), ...
     zeros(2,2), K_lat(:,1:3));          % Pass through proportional gains
-ss_Kpx.u={'beta', 'p', 'r'}; % Inputs:   beta, phi, r (bpr)
+ss_Kpx.u={'beta', 'p', 'r'}; % Inputs:   beta, r (bpr)
 ss_Kpx.y='Kp_x';                    % Outputs:  Controls for ail, rud
 
 controls=sumblk('%u = -Kp_x - Ki_x',{'aileron','rudder'});

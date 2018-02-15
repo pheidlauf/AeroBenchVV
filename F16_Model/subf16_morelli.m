@@ -1,4 +1,4 @@
-function [xd, Nz, Ny] = subf16Fun(x,u,xcg)
+function [xd, Nz, Ny] = subf16_morelli(x,u,xcg)
 %
 %  xd = subf16(x,u)
 %
