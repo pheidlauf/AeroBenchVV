@@ -1,0 +1,165 @@
+function [ f, Q, R, K_lat ] = f16LatCtrlCostFun( x, lin_f16, xequil, stepOn )
+%pendLqrCostFun Cost function for Lqr controller performance
+%
+%
+% x = [Q(1,1) Q(3,3) R]
+
+if(nargin==0)
+    disp('--------------------------------------------------')
+    disp('Warning: Running test case with no inputs')
+    xequil = [502
+        0.038875055974205
+        0
+        0
+        0.038875055974205
+        0
+        0
+        0
+        0
+        0
+        0
+        1000
+        9.056665439780735]';
+    
+    uequil = [0.139462048656925
+        -0.749578473519992
+        0
+        0]';
+    
+    lin_f16 = getLinF16(xequil,uequil,false);
+    
+    Qx = [-10 -10 -10 log(1200) log(3000)];
+    Rx = [0 0];
+    
+    x = [Qx Rx]
+    stepOn = true;
+end
+
+% Decouple Linearized F-16 Model: Isolate Lateral States & Actuators
+
+% States:   beta, p, r
+A_lat = lin_f16.a([3 7 9], [3 7 9]); 
+
+% Inputs:   aileron, rudder
+B_lat = lin_f16.b([3 7 9], [3 4]);     
+
+% Outputs:  beta, p, r, ps, Ny+r   
+C_lat = [lin_f16.c([9 7 8],[3 7 9]);
+    (lin_f16.c(7,[3 7 9]) + lin_f16.c(8,[3 7 9])*xequil(2));
+    lin_f16.c(6,[3 7 9]) + [0 0 1]];  
+D_lat = [zeros(4,2); 
+    lin_f16.d(6,[3 4])];
+
+Atilde = [A_lat zeros(3,2);           % beta; p; r;
+        [C_lat(4:5,:) zeros(2)]];     % ps; Ny+r
+Btilde = [B_lat; D_lat(4:5,:)];
+
+%% Select State & Control Weights & Penalties
+% Set LQR weights
+% Q: Penalty on State Error
+q_beta = exp(x(1));
+q_p = exp(x(2));
+q_r = exp(x(3));
+q_ps_i = exp(x(4));
+q_Ny_r_i = exp(x(5));
+Q = diag([q_beta q_p q_r q_ps_i q_Ny_r_i]);
+
+% R: Penalty on Control Effort
+r_aileron = exp(x(6));
+r_rudder = exp(x(7));
+R = diag([r_aileron r_rudder]);
+   
+% N: Cross coupling term
+N = 0;
+
+% Calculate Lateral Short Period LQR Gains
+K_lat = lqr(Atilde,Btilde,Q,R,N);
+
+
+%% Build State Space Models of Lateral F-16    
+% Uncontrolled SS model of lateral directional dynamics
+ss_lat=ss(A_lat,B_lat,...
+    [C_lat; zeros(2,3)],[D_lat; eye(2)]);                 
+ss_lat.u={'aileron','rudder'};              % Controls: aileron, rudder
+ss_lat.StateName = {'beta','p','r'};
+ss_lat.y={'beta','p','r','ps','Ny_r','ail_out',...
+    'rud_out'};   % Outputs: beta, p, r, ps, ail_cmd, rud_cmd
+
+% Proportional Compensator (using beta, r)
+ss_Kpx=ss(zeros(2,2),zeros(2,3), ...
+    zeros(2,2), K_lat(:,1:3));          % Pass through proportional gains
+ss_Kpx.u={'beta', 'p', 'r'}; % Inputs:   beta, r (bpr)
+ss_Kpx.y='Kp_x';                    % Outputs:  Controls for ail, rud
+
+controls=sumblk('%u = -Kp_x - Ki_x',{'aileron','rudder'});
+
+% Integral Compensator (using ps)
+ss_Kint_e=ss(zeros(2),eye(2),K_lat(:,end-1:end),0);   % Integral control on eps, beta
+ss_Kint_e.u={'e_ps','e_Ny_r'};         % Inputs:   2x1 p beta
+ss_Kint_e.StateName = {'int_e_ps','int_e_Ny_r'};
+ss_Kint_e.y='Ki_x';         % Outputs:  Integral controls
+
+% Negative error between p_cmd and stability p
+error=sumblk('%error = -%cmd + %x',...
+    {'e_ps','e_Ny_r'},...
+    {'ps_cmd','Ny_r_cmd'},...
+    {'ps','Ny_r'});  
+
+sys_cl_lat=connect(ss_lat,ss_Kpx,controls,ss_Kint_e,error,...
+    {'ps_cmd','Ny_r_cmd'},...
+    {'beta','p','r','ps','Ny_r','e_ps','e_Ny_r','ail_out',...
+    'rud_out'});
+
+OLTF=connect(ss_lat,ss_Kpx,controls,-ss_Kint_e,...
+    {'e_ps','e_Ny_r'},{'beta','p','r','ps','Ny_r','ail_out',...
+    'rud_out'});
+
+%% Step Response Based Cost Function
+% S_ps = stepinfo(sys_cl_lat(4,1));
+% S_Ny_r = stepinfo(sys_cl_lat(5,2));
+% 
+% f = S_ps.RiseTime + S_ps.SettlingTime + 0.1*S_ps.Overshoot + ...
+%     S_Ny_r.RiseTime + S_Ny_r.SettlingTime + 0.1*S_Ny_r.Overshoot;
+
+%% Frequency Response Based Cost Function:
+[Gm_ps,Pm_ps,Wgm_ps,Wpm_ps] = margin(minreal(OLTF(4,1),sqrt(eps),false));
+[Gm_Ny,Pm_Ny,Wgm_Ny,Wpm_Ny] = margin(minreal(OLTF(5,2),sqrt(eps),false));
+% [Wn,zeta] = damp(eig(sys_cl_lat.a)); % Could be used
+% zeta range for cat A flight level 1: 0.35 to 1.3
+%       This is for alpha response to elevator step
+
+
+% We want desired OLTF gain crossover frequencies
+f = (Wpm_ps-10)^2 + (Wpm_Ny - 3)^2;
+
+
+
+
+
+
+%% If called outside of fminsearch, print relevant data to console
+if(stepOn)
+    disp('Lateral Controller given Q, R');
+    printmat(K_lat,'LQR Gains','aileron rudder',...
+        'beta p r int_e_ps int_e_Ny_r');
+    [Gm_ps,Pm_ps,Wgm_ps,Wpm_ps]= margin(minreal(OLTF(4,1),sqrt(eps),false))
+    [Gm_Ny,Pm_Ny,Wgm_Ny,Wpm_Ny]= margin(minreal(OLTF(5,2),sqrt(eps),false))
+    S_ps = stepinfo(sys_cl_lat(4,1))
+    S_Ny_r = stepinfo(sys_cl_lat(5,1))
+    damp(eig(sys_cl_lat.a));
+    figure(1)
+    margin(OLTF(4,1))
+    figure(2)
+    margin(OLTF(5,2))
+    figure(3)
+    nyquist(OLTF(4,1))
+    figure(4)
+    nyquist(OLTF(5,2))
+    figure(5)
+    step(sys_cl_lat(4:5,:))
+%     loops_ps = wcsens(OLTF(4,1))
+%     loops_Ny = wcsens(OLTF(5,2))
+end
+
+end
+

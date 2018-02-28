@@ -301,6 +301,35 @@ if(autopilot.levelTurnControl)
 end
 
 
+%% Simple Hold/Track Autopilots (as requested by Stan)
+%{
+if(autopilot.altitudeHold)
+    % Pull out important variables for ease of use
+%     q = x_f16(8);               % Pitch rate    (rad/sec)
+%     alpha = x_f16(2);           % AoA           (rad)
+    h = x_f16(12);              % Altitude      (feet)
+    
+    % Proportional Control Only
+    k_alt = 0.1;
+    error = autopilot.altitude - h;
+    Nz = Nz + k_alt*error; % Allows stacking of cmds
+end
+
+if(autopilot.trackHeading)
+    % Pull out important variables for ease of use
+    phi = x_f16(4);             % Roll angle    (rad)
+    p = x_f16(7);               % Roll rate     (rad/sec)
+    psi = x_f16(6);             % Yaw angle     (rad)
+    r = x_f16(9);               % Yaw rate      (rad/sec)
+    
+    error = (psi - autopilot.heading);
+    ps = ps + 0;
+    
+    
+    
+end
+
+%}
 %% Emforce G-limits and set maneuver states as needed.
 if(Nz > ctrlLimits.NzMax)
     fprintf('Time = %d\n',t);

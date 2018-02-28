@@ -116,8 +116,8 @@ K_lat = lqr(Atilde,Btilde,Q,R,N);
 % K:                beta   p    r    ps_i    Ny
 %       aileron:
 %        rudder:
-printmat(K_lat,'LQR Gains','aileron rudder',...
-        'beta p r int_e_ps int_e_Ny_r');
+% printmat(K_lat,'LQR Gains','aileron rudder',...
+%         'beta p r int_e_ps int_e_Ny_r');
 
 %% Build State Space Models of Lateral F-16    
 % Uncontrolled SS model of lateral directional dynamics
@@ -174,9 +174,9 @@ damp(eig(sys_cl_lat.a))
 % Note: Wn is the natural frequency (aim for 3 rad/s)
 %       zeta is the damping ratio   (aim for 0.707)
 
-opt = stepDataOptions('StepAmplitude',1);
-figure(3);
-step(sys_cl_lat(:,:),10,opt)
+% opt = stepDataOptions('StepAmplitude',1);
+% figure(3);
+% step(sys_cl_lat(:,:),10,opt)
 printmat(K_lat,'LQR Gains','aileron rudder',...
         'beta p r int_e_ps int_e_Ny_r');
 

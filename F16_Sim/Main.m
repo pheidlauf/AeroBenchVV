@@ -24,7 +24,7 @@ alphag = deg2rad(2.1215);   % Trim Angle of Attack (rad)
 betag = 0;                  % Side slip angle (rad)
 
 % Initial Attitude (for simpleGCAS)
-altg = 3500;
+altg = 4000;
 Vtg = 540;                  % Pass at Vtg = 540;    Fail at Vtg = 550;
 phig = (pi/2)*0.5;          % Roll angle from wings level (rad)
 thetag = (-pi/2)*0.8;       % Pitch angle from nose level (rad)

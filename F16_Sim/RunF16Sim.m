@@ -184,9 +184,20 @@ K_lqr = blkdiag(K_long, K_lat);
 %}
 
 % Hard coded LQR gain matrix
-K_lqr = blkdiag([-156.8802  -31.0370  -38.7298],...
-    [   38.0275   -5.6550  -14.0880  -34.0642   -9.9541; ...
-    17.5640    1.5839  -41.4351    6.2955  -53.8602]);
+K_long = [-156.8802  -31.0370  -38.7298];
+
+% Manually tuned
+% K_lat = [   38.0275   -5.6550  -14.0880  -34.0642   -9.9541;...
+%     17.5640    1.5839  -41.4351    6.2955  -53.8602]; 
+
+% Optimally tuned (experimental)
+K_lat = [37.84483    -25.40956     -6.82876   -332.88343    -17.15997;...
+    -23.91233      5.69968    -21.63431     64.49490    -88.36203];
+
+
+
+% Combine decoupled controllers
+K_lqr = blkdiag(K_long,K_lat);
 
 if(printOn)
     printmat(K_lqr,'Decoupled LQR Controller Gains', ...
