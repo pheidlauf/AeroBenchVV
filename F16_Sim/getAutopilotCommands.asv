@@ -304,36 +304,26 @@ end
 %% Simple Hold/Track Autopilots (as requested by Stan)
 
 if(autopilot.altitudeHold)
-    man_start = 5;
-    if(t < man_start)
-        % Do nothing
-    else
-        % Pull out important variables for ease of use
-        alpha = x_f16(2);           % AoA           (rad)
-        theta = x_f16(5);           % Pitch angle   (rad)
-        gamma = theta - alpha;      % Path angle    (rad)
-        h = x_f16(12);              % Altitude      (feet)
-        
-        % Standards for judging completion
-        eps_gamma = rad2deg(1);
-        eps_h = 10;
-        
-        % Proportional Control Only
-        k_alt = 0.025;
-        h_error = autopilot.altitude - h;
-        Nz = Nz + k_alt*h_error; % Allows stacking of cmds
-        
-        % (Psuedo) Derivative control using path angle
-        k_gamma = 25;
-        Nz = Nz - k_gamma*gamma;
-        
-        
+    % Pull out important variables for ease of use
+%     q = x_f16(8);               % Pitch rate    (rad/sec)
+    alpha = x_f16(2);           % AoA           (rad)
+    theta = x_f16(5);           % Pitch angle   (rad)
+    gamma = theta - alpha;      % Path angle    (rad)
+    h = x_f16(12);              % Altitude      (feet)
+    
+    % Proportional Control Only
+    k_alt = 0.05;
+    h_error = autopilot.altitude - h;
+    Nz = Nz + k_alt*h_error; % Allows stacking of cmds
+    
+    % (Psuedo) Derivative control using path angle
+    k_gamma = 20;
+    Nz = Nz - k_gamma*gamma;
+    
+    if(abs(gamma) < eps_gamma && abs(h_error) < eps_h)
         if(man_complete < 0)
-            if(abs(gamma) < eps_gamma && abs(h_error) < eps_h)
-                man_complete = t;
-            end
-        end       
     end
+        
 end
 
 
@@ -354,25 +344,25 @@ end
 
 
 %% Emforce G-limits and set maneuver states as needed.
-% if(Nz > ctrlLimits.NzMax)
-%     fprintf('Time = %d\n',t);
-%     fprintf('Nz   = %d g''s\n',Nz);
-%     fprintf('phi  = %d deg\n',rad2deg(x_f16(4)));
-%     Nz = ctrlLimits.NzMax;
-%     warning('Nz_ref exceeds NzMax. Constraining...');   
-%     fprintf('Nz_trimmed   = %d g''s\n',Nz);
-%     disp('Note: ODE45 may re-calculate this time step');
-% end
-% 
-% if(Nz < ctrlLimits.NzMin)
-%     fprintf('Time = %d\n',t);
-%     fprintf('Nz   = %d g''s\n',Nz);
-%     fprintf('phi  = %d deg\n',rad2deg(x_f16(4)));
-%     Nz = ctrlLimits.NzMin;
-%     warning('Nz_ref below NzMin. Constraining...');
-%     fprintf('Nz_trimmed   = %d g''s\n',Nz);
-%     disp('Note: ODE45 may re-calculate this time step');
-% end
+if(Nz > ctrlLimits.NzMax)
+    fprintf('Time = %d\n',t);
+    fprintf('Nz   = %d g''s\n',Nz);
+    fprintf('phi  = %d deg\n',rad2deg(x_f16(4)));
+    Nz = ctrlLimits.NzMax;
+    warning('Nz_ref exceeds NzMax. Constraining...');   
+    fprintf('Nz_trimmed   = %d g''s\n',Nz);
+    disp('Note: ODE45 may re-calculate this time step');
+end
+
+if(Nz < ctrlLimits.NzMin)
+    fprintf('Time = %d\n',t);
+    fprintf('Nz   = %d g''s\n',Nz);
+    fprintf('phi  = %d deg\n',rad2deg(x_f16(4)));
+    Nz = ctrlLimits.NzMin;
+    warning('Nz_ref below NzMin. Constraining...');
+    fprintf('Nz_trimmed   = %d g''s\n',Nz);
+    disp('Note: ODE45 may re-calculate this time step');
+end
 
 % Set t_maneuver states
 t_maneuver(1) = man_start;

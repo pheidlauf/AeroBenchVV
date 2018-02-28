@@ -637,6 +637,15 @@ if(plotOn)
     legend('\beta','p_{s,ref}','p_s','p_{s,i}',...
         'Ny+r','Ny+r_i','Aileron','Rudder');
     
+    figure(9)
+    hold on;
+    title('Altitude');
+    xlabel('Time (sec)');
+    ylabel('ft msl');
+    plot(time,x_f16_hist(12,:));                     % Altitude (ft msl)
+    plot(time,ones(size(time))*autopilot.altitude,'k:');  % AP altitude
+    legend('F-16 Altitude','Goal Altitude');
+    
     if(printOn)
         % Record processing time
         t_plotted = toc(timerStart);

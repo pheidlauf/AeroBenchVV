@@ -109,5 +109,5 @@ titlestr = {str1, str2,str3,str4};
 title(titlestr, 'FontSize', 16, 'FontName','FixedWidth');
 
 % Save Figure
-print('output_pic','-dpng')
+print('output_picture','-dpng')
 close all;

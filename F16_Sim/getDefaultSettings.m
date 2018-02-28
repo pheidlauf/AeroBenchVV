@@ -63,5 +63,8 @@ autopilot.levelTurnControl      = false;    % Pulls g's to stay level when banke
 autopilot.simpleGCAS            = false;    % "Roll & Pull" to level flight
 autopilot.turnToHeading         = false;    % Bank, G, unbank to heading
 autopilot.timeTriggeredControl  = false;    % Program your own maneuvers f(t)
+autopilot.altitudeHold          = false;    % Proportional altitude control
+autopilot.altitude              = 500;      % ft msl 
+autopilot.trackHeading          = false;    % Track a heading (P-D?)
 
 end
