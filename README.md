@@ -1,7 +1,7 @@
 ﻿<p align="center"> <img src="gcas.gif"/> </p>
 
 # AeroBenchVV Overview
-This project contains a set of benchmark models and controllers that tests automated aircraft maneuvers by performing simulations. The hope is to provide a benchmark to motivate better verification and analysis methods, working beyond models based on Dubin's car dynamics, towards the sorts of models used in aerospace engineering. Compared to actual aerospace models used in practice, however, these models are still very simple. Roughly speaking, the dynamics are nonlinear, have about 10-20 dimensions (continuous state variables), and hybrid in the sense of discontinuous ODEs, but not with jumps in the state. The dynamics are given entirely in human-readable matlab .m code, without the need for additional Matlab toolboxes. Ode45 is used to simulate the system, pass/fail specifications are checked against the simulated maneuver, and a plot (or animation) of the resultant flight path can be generated.
+This project contains a set of benchmark models and controllers that test automated aircraft maneuvers by performing simulations. The hope is to provide a benchmark to motivate better verification and analysis methods, working beyond models based on Dubin's car dynamics, towards the sorts of models used in aerospace engineering. Compared to actual aerospace models used in practice, however, these models are still very simple. Roughly speaking, the dynamics are nonlinear, have about 10-20 dimensions (continuous state variables), and hybrid in the sense of discontinuous ODEs, but not with jumps in the state. The dynamics are given entirely in human-readable matlab .m code, without the need for additional Matlab toolboxes. Ode45 is used to simulate the system, pass/fail specifications are checked against the simulated maneuver, and a plot (or animation) of the resultant flight path can be generated.
 
 To run the ground collision avoidance system (GCAS) benchmark and create the output_pic.png image, output_animation.gif animation and SimResults.mat data file (in the F16_Sim folder), use Matlab to set the F16_Sim folder as your working directory and run the Main.m script. Note creating the .gif animation takes the longest time, so you might want to eventually disable that by commenting out "MakeAnimation;" at the bottom of the script.
 
@@ -11,7 +11,7 @@ The low-level controller is a decoupled LQR controller, with the gains given aro
 
 You can modify the models or controllers, and see how the maneuver is affected. For example, if you change the center of gravity x position, xcg, from 0.35 to 0.2 (line 37 on subf16_morelli.m), the GCAS system will fail to recover the system. Reachability questions can then be considered about sets of initial states, and sets of model parameters, such as "What range of xcg is guaranteed recoverable?" We plan to release more specific cases with the publication which is currently being prepared.
 
-If you run the script without MakePicture or MakeAnimation (and analysisOn and printOn is set), there will be output printed in matlab:
+If you run the script without calls to MakePicture or MakeAnimation (and if analysisOn and printOn are true), there will be output printed in matlab:
 ```
 Pass Fail Conditions:  
            stable: 1  
@@ -50,6 +50,9 @@ This benchmark was inspired by a real F-16 GCAS system that was recently develop
 If you discover errors or incompatibilities within the code library, please let me know by submitting a New Issue on GitHub. Also, if you require the library to be reorganized (architecture, inputs & outputs for different functions, etc.) for better integration with  your analysis tools and you believe that the changes would benefit most people, submit a feature request using the "Issues" tool. I may be able to integrate a fix in the master branch or help advise you on how to modify the library in a fork. 
 
 You are also more than welcome to contribute to this benchmark project. The '''getAutopilotCommands''' function, for instance, could be improved by the addition of different autonomous maneuvers or architectures. Pull requests will allow me to integrate any contributions.
+
+## Related Work
+A python implementation of the same code library is currently being developed. It is available at https://github.com/stanleybak/AeroBenchVVPython.
 
 ## Citations
 
