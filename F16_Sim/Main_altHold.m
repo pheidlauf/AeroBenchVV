@@ -22,7 +22,7 @@ alphag = deg2rad(0);        % Angle of Attack (rad)
 betag = 0;                  % Side slip angle (rad)
 
 % Initial Attitude (for simpleGCAS)
-altg = 400;
+altg = 550;
 Vtg = 540;                  % Airspeed (ft/s)
 phig = 0;                   % Roll angle from wings level (rad)
 thetag = alphag;            % Pitch angle from nose level (rad)

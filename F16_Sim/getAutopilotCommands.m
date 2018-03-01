@@ -304,39 +304,45 @@ end
 %% Simple Hold/Track Autopilots (as requested by Stan)
 
 if(autopilot.altitudeHold)
-    man_start = 5;
+    man_start = 2;
     if(t < man_start)
         % Do nothing
     else
         % Pull out important variables for ease of use
+        Vt = x_f16(1);              % Airpeed       (ft/sec)
         alpha = x_f16(2);           % AoA           (rad)
+        beta = x_f16(3);            % Sideslip      (rad)
+        phi = x_f16(4);             % Roll anle     (rad)
         theta = x_f16(5);           % Pitch angle   (rad)
-        gamma = theta - alpha;      % Path angle    (rad)
         h = x_f16(12);              % Altitude      (feet)
         
-        % Standards for judging completion
-        eps_gamma = rad2deg(1);
+        % Standards for judging maneuver completion
         eps_h = 10;
-        
-        % Proportional Control Only
-        k_alt = 0.025;
+        eps_h_dot = 1;
+
+        % Proportional-Derivative Control
         h_error = autopilot.altitude - h;
-        Nz = Nz + k_alt*h_error; % Allows stacking of cmds
+        % h_dot = sin(gamma)*Vt         
+        sinGamma = (cos(alpha)*sin(theta)- ...
+            sin(alpha)*cos(theta)*cos(phi))*cos(beta) - ...
+            (cos(theta)*sin(phi))*sin(beta);    
+        h_dot = Vt*sinGamma;    % Calculated, not differentiated
         
-        % (Psuedo) Derivative control using path angle
-        k_gamma = 25;
-        Nz = Nz - k_gamma*gamma;
+        % Gains for Control
+        k_alt = 0.005;
+        k_h_dot = 0.02;
         
-        
+        % Calculate Nz command
+        Nz = Nz + k_alt*h_error - k_h_dot*h_dot; % Allows stacking of cmds
+     
+        % Check for maneuver completion
         if(man_complete < 0)
-            if(abs(gamma) < eps_gamma && abs(h_error) < eps_h)
+            if(abs(h_dot) < eps_h_dot && abs(h_error) < eps_h)
                 man_complete = t;
             end
         end       
     end
 end
-
-
 
 if(autopilot.trackHeading)
     % Pull out important variables for ease of use
@@ -345,9 +351,10 @@ if(autopilot.trackHeading)
     psi = x_f16(6);             % Yaw angle     (rad)
     r = x_f16(9);               % Yaw rate      (rad/sec)
     
-    h_error = (psi - autopilot.heading);
+    psi_error = (psi - autopilot.heading);
     ps = ps + 0;
     
+    % TODO: Complete this
     
     
 end
