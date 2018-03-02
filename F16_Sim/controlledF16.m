@@ -65,8 +65,13 @@ function [ xd, u, Nz, ps, Ny_r ] = controlledF16( t, x_f16,...
 % BUILDLONGITUDINALLQRCTRL, ODE45
                   
 % Get Reference Control Vector (commanded Nz, ps, Ny+r, throttle)
-u_ref = getAutopilotCommands(t, x_f16, xequil, uequil, ...
-    flightLimits, ctrlLimits, autopilot, 0); % in g's & rads/sec
+if(strcmp(autopilot.mode,'tracking'))
+    u_ref = getTrackingAutopilotCmds(t, x_f16, xequil, uequil, ...
+        flightLimits, ctrlLimits, autopilot, 0); % in g's & rads/sec
+else
+    u_ref = getAutopilotCommands(t, x_f16, xequil, uequil, ...
+        flightLimits, ctrlLimits, autopilot, 0); % in g's & rads/sec
+end
 
 % Calculate perturbation from trim state 
 x_delta = x_f16 - [xequil; 0; 0; 0]; % in rads

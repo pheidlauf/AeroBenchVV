@@ -18,21 +18,23 @@ close all; clear; clc;
 powg = 9;                   % Power
 
 % Default alpha & beta
-alphag = deg2rad(2.1215);   % Trim Angle of Attack (rad)
+alphag = deg2rad(0);        % Angle of Attack (rad)
 betag = 0;                  % Side slip angle (rad)
 
-% Initial Attitude (for simpleGCAS)
-altg = 3500;
+% Initial Altitude/Attitude
+altg = 550;                 % Altitude (ft msl)
 Vtg = 540;                  % Airspeed (ft/s)
-phig = (pi/2)*0.5;          % Roll angle from wings level (rad)
-thetag = (-pi/2)*0.8;       % Pitch angle from nose level (rad)
-psig = -pi/4;               % Yaw angle from North (rad)     
-t_vec = 0:0.01:15;          % Time vector for simulation output
+phig = deg2rad(0);          % Roll angle from wings level (rad)
+thetag = deg2rad(0);        % Pitch angle from nose level (rad)
+psig = pi/4;                % Yaw angle from North (rad)     
+t_vec = 0:0.01:20;          % Time vector for simulation output
 
 
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
-[flightLimits,ctrlLimits,autopilot] = getDefaultSettings()
-autopilot.simpleGCAS = true;    % Run GCAS simulation
+[flightLimits,ctrlLimits,autopilot] = getDefaultSettings();
+autopilot.mode = 'tracking';        % Use tracking autopilot (EXPERIMENTAL)
+autopilot.airspeed = 550;           % ft/s
+autopilot.heading = 0;              % North
 
 %% Build Initial Condition Vectors
 % state = [VT, alpha, beta, phi, theta, psi, P, Q, R, pn, pe, h, pow]
@@ -51,3 +53,6 @@ plotOn = true;
 % Save output to workspace
 save('SimResults.mat','output','passFail');
 disp('Script Complete');
+% pause
+MakePicture;
+MakeAnimation;

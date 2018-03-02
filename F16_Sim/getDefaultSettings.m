@@ -66,5 +66,7 @@ autopilot.timeTriggeredControl  = false;    % Program your own maneuvers f(t)
 autopilot.altitudeHold          = false;    % Proportional altitude control
 autopilot.altitude              = 500;      % ft msl 
 autopilot.trackHeading          = false;    % Track a heading (P-D?)
+autopilot.heading               = 0;        % Track to north on default
+autopilot.airspeed              = 500;      % ft/s
 
 end

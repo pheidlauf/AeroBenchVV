@@ -250,9 +250,15 @@ Ny_r_hist = zeros(1,length(time));      % Ny_r
 lin_Nz_hist = zeros(1,length(time));    % Nz (linear approximation)
 lin_Ny_r_hist = zeros(1,length(time));    % Ny (linear approximation)
 
-% Recall GCAS time steps from persistent memory of getAutopilotCommands
-[~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil, ...
-    flightLimits, ctrlLimits, autopilot, false);
+if(strcmp(autopilot.mode,'tracking'))
+    % Recall GCAS time steps from persistent memory of getAutopilotCommands
+    [~,t_maneuver] = getTrackingAutopilotCmds(time(end), x0,...
+    xequil, uequil, flightLimits, ctrlLimits, autopilot, false);
+else
+    % Recall GCAS time steps from persistent memory of getAutopilotCommands
+    [~,t_maneuver] = getAutopilotCommands(time(end), x0, xequil, uequil, ...
+        flightLimits, ctrlLimits, autopilot, false);
+end
 
 % Reset Persistent Variables in getOuterLoopControl
 % getAutopilotCommands(0, x0, xequil, uequil, ctrlLimits, true);
@@ -578,11 +584,11 @@ if(plotOn)
     xlabel('Time (sec)');
     ylabel('KIAS (ft/sec)');
     hold on;
-    plot(time, ones(size(time))*xequil(1),'k:');
+    plot(time, ones(size(time))*autopilot.airspeed,'k:');
     plot(time,x_f16_hist(1,:));
     plot(time, ones(size(time))*300,'r--');
     plot(time, ones(size(time))*900,'r-.');
-    legend('V_{trim}','V','V_{min}','V_{max}','location','SouthEast')
+    legend('V_{cmd}','V','V_{min}','V_{max}','location','SouthEast')
 
 
     % All Control Signals
