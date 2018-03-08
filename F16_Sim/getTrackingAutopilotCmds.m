@@ -104,18 +104,46 @@ t_maneuver = zeros(1,2);
 % TODO: Implement fancier solution
 man_start = 1;
 
+% Select target waypoint
+e_pt = 2000;
+n_pt = 10000;
+h_pt = 1000;
+
 if(t<1)
     % Do nothing
-else
-    Nz_alt = trackAltitude(x_f16,autopilot.altitude);
+elseif(man_complete < 0)
+    % Get info pertaining to waypoint
+    [range, psi_cmd, alt_err] = getWaypointData(x_f16,e_pt,n_pt,h_pt);
+    
+    % Get desired roll angle given desired heading
+    phi_cmd = getPhiToTrackHeading(x_f16,psi_cmd);
+    Nz_alt = trackAltitude(x_f16,h_pt);
     Nz_roll = getNzForLevelTurnOL(x_f16);
     Nz = Nz_alt + Nz_roll;
-    psi_cmd = getPsiToTrackHeading(x_f16,autopilot.heading);
-    ps = trackRollAngle(x_f16,psi_cmd);
+    ps = trackRollAngle(x_f16,phi_cmd);
+    throttle = trackAirspeed(x_f16,autopilot.airspeed);
+    
+    if(range < 250 && alt_err < 100)
+        man_complete = t;
+    end
+else
+    % After waypoint fly North
+    Nz = trackAltitude(x_f16,h_pt);
+    phi_cmd = getPhiToTrackHeading(x_f16,0);
+    ps = trackRollAngle(x_f16,phi_cmd);
     throttle = trackAirspeed(x_f16,autopilot.airspeed);
 end
 
-%% Function Definitions
+
+%     Nz_alt = trackAltitude(x_f16,autopilot.altitude);
+% %     Nz_alt = trackClimbRate(x_f16,autopilot.climbRate);
+%     Nz_roll = getNzForLevelTurnOL(x_f16);
+%     Nz = Nz_alt + Nz_roll;
+%     phi_cmd = getPhiToTrackHeading(x_f16,autopilot.heading);
+%     ps = trackRollAngle(x_f16,phi_cmd);
+%     throttle = trackAirspeed(x_f16,autopilot.airspeed);
+
+%% Autopilot Subroutines
     function [Nz] = trackAltitude(x_f16, h_cmd)
         % Given state & des altitude, calculate PD control using Nz
         
@@ -140,6 +168,29 @@ end
         
         % Calculate Nz command
         Nz = k_alt*h_error - k_h_dot*h_dot;
+    end
+
+    function [Nz] = trackClimbRate(x_f16, h_dot_cmd)
+        % Given state & des altitude, calculate P control using Nz
+        
+        % Pull out important variables for ease of use
+        Vt = x_f16(1);              % Airpeed       (ft/sec)
+        alpha = x_f16(2);           % AoA           (rad)
+        beta = x_f16(3);            % Sideslip      (rad)
+        phi = x_f16(4);             % Roll anle     (rad)
+        theta = x_f16(5);           % Pitch angle   (rad)
+        
+        % Proportional Control
+        sinGamma = (cos(alpha)*sin(theta)- ...
+            sin(alpha)*cos(theta)*cos(phi))*cos(beta) - ...
+            (cos(theta)*sin(phi))*sin(beta);
+        h_dot = Vt*sinGamma;    % Calculated, not differentiated
+        
+        % Gains for Control
+        k_h_dot = 0.02;
+        
+        % Calculate Nz command
+        Nz = k_h_dot*(h_dot_cmd - h_dot);
     end
 
     function [Nz] = getNzForLevelTurnOL(x_f16)
@@ -177,7 +228,7 @@ end
         throttle = K_vt*(Vt_cmd - x_f16(1));
     end
 
-    function [phi_cmd] = getPsiToTrackHeading(x_f16,psi_cmd)
+    function [phi_cmd] = getPhiToTrackHeading(x_f16,psi_cmd)
         % PD Control on heading angle using phi_cmd as control
         
         % Pull out important variables for ease of use
@@ -199,19 +250,37 @@ end
         phi_cmd = min(max(phi_cmd,-maxBankRad),maxBankRad);
     end
 
-%% Check for maneuver completion
-% TODO: Put in checks for this.
-% man_start = 0;
-if(man_complete < 0)
-    if(abs(autopilot.airspeed - x_f16(1)) < 5)
-        if(abs(autopilot.heading - x_f16(6)) < 1)
-            if(abs(autopilot.altitude - x_f16(12)) < 10)
-                man_complete = t;
-            end
-        end
+%% Autopilot Checks
+
+% Check distance, heading from target point
+
+    function [range,psi,alt_err] = getWaypointData(x_f16,e_pt,n_pt,h_pt)
+        % Range = Horizontal range to target (ft) 
+        % psi = heading to target (rad)
+        % alt_err = altitude difference between f-16 & waypoint
+        
+        % Pull out important variables for ease of use
+        n_pos = x_f16(10);          % North position    (ft)
+        e_pos = x_f16(11);          % East position     (ft)
+        alt = x_f16(12);            % Altitude          (ft)      
+        psi = atan2( e_pt - e_pos,n_pt - n_pos);   %    (rad)
+        range = sqrt((e_pt - e_pos)^2 + (n_pt - n_pos)^2);    
+        alt_err = h_pt - alt;
     end
-end
-% man_complete = man_start + 1; % Just make it pass for now
+
+
+
+
+% Check if the autopilot has reached its desired speed heading & alt
+% if(man_complete < 0)
+%     if(abs(autopilot.airspeed - x_f16(1)) < 5)
+%         if(abs(autopilot.heading - x_f16(6)) < 1)
+%             if(abs(autopilot.altitude - x_f16(12)) < 10)
+%                 man_complete = t;
+%             end
+%         end
+%     end
+% end
 
 %% Combine/condition controls
 % Set t_maneuver states

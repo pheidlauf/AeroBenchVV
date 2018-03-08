@@ -27,7 +27,7 @@ Vtg = 540;                  % Airspeed (ft/s)
 phig = deg2rad(0);          % Roll angle from wings level (rad)
 thetag = deg2rad(0);        % Pitch angle from nose level (rad)
 psig = pi/4;                % Yaw angle from North (rad)     
-t_vec = 0:0.01:20;          % Time vector for simulation output
+t_vec = 0:0.01:30;          % Time vector for simulation output
 
 
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
@@ -35,6 +35,7 @@ t_vec = 0:0.01:20;          % Time vector for simulation output
 autopilot.mode = 'tracking';        % Use tracking autopilot (EXPERIMENTAL)
 autopilot.airspeed = 550;           % ft/s
 autopilot.heading = 0;              % North
+autopilot.climbRate = 25;           % ft/s
 
 %% Build Initial Condition Vectors
 % state = [VT, alpha, beta, phi, theta, psi, P, Q, R, pn, pe, h, pow]

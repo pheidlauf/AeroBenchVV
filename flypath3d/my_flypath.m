@@ -326,8 +326,16 @@ for i = 1:pStep:maxLength
         titlestr5 = sprintf('[\\phi \\theta \\psi] = [ %5.1f, %5.1f, %5.1f ] deg ',...
                 phi,theta,psi);
         
+        % Position
+        e_pos = obj(1).matrix(i,1);
+        n_pos = obj(1).matrix(i,2);
+        alt = obj(1).matrix(i,3);
+        titlestr6 = sprintf('[E N h] = [ %5.0f, %5.0f, %5.0f ] ft ',...
+            e_pos, n_pos, alt);
         
-        titlestr = {titlestr1,titlestr2,titlestr3,titlestr4,titlestr5};
+        
+        titlestr = {titlestr1,titlestr2,titlestr3,titlestr4,titlestr5,...
+            titlestr6};
     else
         % Use only "flypath" provided data
         titlestr1 = sprintf('t = %7.2f sec', tvec(i));
@@ -402,9 +410,9 @@ for i = 1:pStep:maxLength
     if strcmp(pZLim,'off') ~= 1
         zlim( pZLim );
     end
-    xlabel('x [ft]');
-    ylabel('y [ft]');
-    zlabel('z [ft]');
+    xlabel('East (ft)');
+    ylabel('North (ft)');
+    zlabel('Altitude (ft)');
     
     %% Heidlauf Edits
     xl = (xlim);
