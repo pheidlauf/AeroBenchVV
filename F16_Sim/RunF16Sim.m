@@ -285,14 +285,14 @@ for i = 1:length(time)
     u_hist(:,i) = u;
 
     % Linear approx of Nz
-    lin_Nz_hist(i) = (lin_f16.c(1,:)*(x_f16_hist(1:13,i) - xequil)+ ...
-        lin_f16.d(1,:)*(u(1:4) + uequil));
-    %     lin_Nz_hist(i) = (lin_f16.c(1,:)*(x_f16_hist(1:13,i)) + ...
-    %         lin_f16.d(1,:)*(u(1:4)));
+%     lin_Nz_hist(i) = (lin_f16.c(1,:)*(x_f16_hist(1:13,i) - xequil)+ ...
+%         lin_f16.d(1,:)*(u(1:4) + uequil));
+%     lin_Nz_hist(i) = 0;
 
     % Linear approx of (Ny + r)
-    lin_Ny_r_hist(i) = (lin_f16.c(6,:)*(x_f16_hist(1:13,i)-xequil)+...
-        lin_f16.d(6,:)*(u(1:4) + uequil)) + x_f16_hist(9,i);
+%     lin_Ny_r_hist(i) = (lin_f16.c(6,:)*(x_f16_hist(1:13,i)-xequil)+...
+%         lin_f16.d(6,:)*(u(1:4) + uequil)) + x_f16_hist(9,i);
+%     lin_Ny_r_hist(i) = 0;
 end
 
 % Determine ps acceleration (rad/s/s)
@@ -340,8 +340,8 @@ stateHistory.Ny_r_e_i = x_f16_hist(16,:);
 stateHistory.Nz_hist = Nz_hist;
 stateHistory.ps_hist = ps_hist;
 stateHistory.Ny_r_hist = Ny_r_hist;
-stateHistory.lin_Nz_hist = lin_Nz_hist;
-stateHistory.lin_Ny_hist = lin_Ny_r_hist;
+% stateHistory.lin_Nz_hist = lin_Nz_hist;
+% stateHistory.lin_Ny_hist = lin_Ny_r_hist;
 
 % Create struct for back-calculated control history
 controlHistory = struct([]);

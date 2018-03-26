@@ -15,6 +15,7 @@
 
 %% Set Initial Conditions
 close all; clear; clc;
+profile on
 powg = 9;                   % Power
 
 % Default alpha & beta
@@ -55,5 +56,6 @@ plotOn = true;
 save('SimResults.mat','output','passFail');
 disp('Script Complete');
 % pause
-MakePicture;
-MakeAnimation;
+% MakePicture;
+% MakeAnimation;
+profile viewer
