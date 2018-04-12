@@ -107,7 +107,7 @@ man_start = 1;
 % Select target waypoint
 e_pt = 2000;
 n_pt = 10000;
-h_pt = 1000;
+h_pt = autopilot.altitude;
 
 if(t<1)
     % Do nothing
@@ -123,25 +123,15 @@ elseif(man_complete < 0)
     ps = trackRollAngle(x_f16,phi_cmd);
     throttle = trackAirspeed(x_f16,autopilot.airspeed);
     
-    if(range < 250 && alt_err < 100)
+    if(range < 250 && alt_err < 50)
         man_complete = t;
     end
 else
-    % After waypoint fly North
+    % After waypoint fly level
     Nz = trackAltitude(x_f16,h_pt);
-    phi_cmd = getPhiToTrackHeading(x_f16,0);
-    ps = trackRollAngle(x_f16,phi_cmd);
+    ps = trackRollAngle(x_f16,0);
     throttle = trackAirspeed(x_f16,autopilot.airspeed);
 end
-
-
-%     Nz_alt = trackAltitude(x_f16,autopilot.altitude);
-% %     Nz_alt = trackClimbRate(x_f16,autopilot.climbRate);
-%     Nz_roll = getNzForLevelTurnOL(x_f16);
-%     Nz = Nz_alt + Nz_roll;
-%     phi_cmd = getPhiToTrackHeading(x_f16,autopilot.heading);
-%     ps = trackRollAngle(x_f16,phi_cmd);
-%     throttle = trackAirspeed(x_f16,autopilot.airspeed);
 
 %% Autopilot Subroutines
     function [Nz] = trackAltitude(x_f16, h_cmd)
@@ -267,20 +257,6 @@ end
         range = sqrt((e_pt - e_pos)^2 + (n_pt - n_pos)^2);    
         alt_err = h_pt - alt;
     end
-
-
-
-
-% Check if the autopilot has reached its desired speed heading & alt
-% if(man_complete < 0)
-%     if(abs(autopilot.airspeed - x_f16(1)) < 5)
-%         if(abs(autopilot.heading - x_f16(6)) < 1)
-%             if(abs(autopilot.altitude - x_f16(12)) < 10)
-%                 man_complete = t;
-%             end
-%         end
-%     end
-% end
 
 %% Combine/condition controls
 % Set t_maneuver states

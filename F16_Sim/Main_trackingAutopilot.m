@@ -23,7 +23,7 @@ alphag = deg2rad(0);        % Angle of Attack (rad)
 betag = 0;                  % Side slip angle (rad)
 
 % Initial Altitude/Attitude
-altg = 550;                 % Altitude (ft msl)
+altg = 1000;                % Altitude (ft msl)
 Vtg = 540;                  % Airspeed (ft/s)
 phig = deg2rad(0);          % Roll angle from wings level (rad)
 thetag = deg2rad(0);        % Pitch angle from nose level (rad)
