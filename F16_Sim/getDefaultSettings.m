@@ -57,6 +57,7 @@ ctrlLimits.NzMin = -1;
 %% Set Initial Autopilot Modes
 autopilot = struct([]);
 autopilot(1).title = 'Default Simulation';
+autopilot.mode = 'default';         % Set to 'tracking' for improvement
 autopilot.basicSpeedControl     = true;     % Proportional control on airspeed
 autopilot.steadyLevelFlightHold = false;    % PD control on pitch & roll
 autopilot.levelTurnControl      = false;    % Pulls g's to stay level when banked

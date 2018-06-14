@@ -85,7 +85,7 @@ D_long = lin_f16.d([3 2 1],2);          % Inputs:   elevator
 Atilde = [A_long zeros(2,1);            % States:   alpha; q;
     C_long(3,:) 0];                     %           Nz
 Btilde = [B_long;
-    D_long(3,:)];                   % Inputs:   elevator
+    D_long(3,:)];                       % Inputs:   elevator
 
 
 %% Select State & Control Weights & Penalties
