@@ -13,6 +13,14 @@
 %
 % See also: RUNF16SIM, GETDEFAULTSETTINGS, MAKEANIMATION, MAKEPICTURE,
 
+%% Add all needed paths (if not manually added)
+close all; clear; clc;
+addpath(genpath('F16_Model'));
+addpath(genpath('utils'));
+addpath(genpath('Runner'));
+addpath(genpath('Autopilot'));
+addpath(genpath('FlightController'));
+
 %% Set Initial Conditions
 close all; clear; clc;
 powg = 9;                   % Power
@@ -52,8 +60,8 @@ plotOn = true;
 
 %% Save results
 % Save output to workspace
-save('SimResults.mat','output','passFail');
-disp('Script Complete');
-% pause
-MakePicture;
-MakeAnimation;
+save('../Results/SimResults.mat','output','passFail');
+
+% Generate Renderings using a modified version of flypath3d
+run ../Visualizers/MakePicture;
+run ../Visualizers/MakeAnimation;

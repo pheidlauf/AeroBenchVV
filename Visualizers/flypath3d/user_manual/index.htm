@@ -1,0 +1,1184 @@
+<html>
+
+<head>
+<title>flypath3d</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<meta http-equiv="content-type" content="text/html; charset=windows-1250">
+</head>
+
+<body style="margin: 0; padding: 0;" bgcolor="#ffffff">
+<!-- HEADER -->
+<table  id="contents" class="header" border="0" width="100%" height="75">
+<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+  <td><h1>flypath3d</h1></td>
+</tr>
+</table>
+&nbsp;
+<!-- END OF HEADER -->
+
+<!-- MAIN TABLE -->
+<table border="0" width="1000" cellspacing="0" cellpadding="0" align="center">
+<tr valign="top">
+  <td width="1000">
+  
+	<table align="center" border="0" width="1000" height="440">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td background="gfx/logo.png" height="440"><p class="frame">| <span class="hot">free Matlab® package</span> for 3d visualization of<br>| missile and air target trajectories
+</p></td>
+	    </tr>
+	</table>
+	
+	<h2>Contents</h2>
+	<p class="image">|&#32;<a href="#description">package description</a>&#32;|&#32;<a href="#manual">user manual</a>&#32;|&#32;<a href="#examples">examples of application</a>&#32;|&#32;<a href="#add-ones">add-ones</a>&#32;|<br>|&#32;<a href="#requirements">program availability and system requirements</a>&#32;|</p>
+	
+	<h2 id="description">Package description</h2>
+	<p>The <b>flypath3d</b> package a free Matlab software for 3D visualizations of missile and air target trajectories that provide a visual reference for the computer simulation. Because of its versatility and ease of use, the software can help to produce attractive presentations for various scientific or public outreach purposes.</p>
+	<p>The <b>flypath3d</b> package is generally presented in:</p>
+	<p class="list"><a href="https://www.researchgate.net/profile/Witold_Buzantowicz/publication/308324771_Matlab_Script_for_3D_Visualization_of_Missile_and_Air_Target_Trajectories/links/57e0c51608aece48e9e203ef.pdf?origin=publication_list">Bużantowicz W. "Matlab Script for 3D Visualization of Missile and Air Target Trajectories".<br><i>International Journal of Computer and Information Technology</i> <b>5</b> (2016)5, pp. 419-422.</a></p>
+	<p>The described package is freely available for scientific and educational use. You can also modify and/or distribute this software for any purpose. However, when using the package, please remember to cite the paper.</p>
+	<p>The software is provided "as is" and the author disclaims all warranties with regard to this software including all implied warranties of merchantability and fitness. In no event shall the author be liable for any special, direct, indirect, or consequential damages or any damages whatsoever resulting from loss of use, data or profits, whether in an action of contract, negligence or other tortious action, arising out of or in connection with the use or performance of this software.</p>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	
+	<h2 id="manual">User manual</h2>
+	<h3>Installation of the package</h3>
+	<p>The package is composed of several M-code files that are installed in the Matlab® environment using the 'package_setup' command. It provides functions for constructing complex 3D scenes by placing consecutive objects that act, in effect, like building blocks within the layout.</p>
+	<p>Download the <b>flypath3d</b> package and unzip it to the destination directory. Next execute configuration script:</p>
+	<p class="code">package_setup</p>
+	<p>That's all! Your copy of <b>flypath3d</b> package is ready to work.</p>
+	<h3>Program description and data set organization</h3>
+	<p>Objects can be created using the 'new_object' function; the package allows kinematic data, 3D model geometry definitions, and display parameters to be combined into a single easy-to-use data set:</p>
+	<p class="code">new_object(filename,matrix,varargin);</p>
+	<p>The function parameters are: output set file name ('filename'), array of kinematic data ('matrix') and some optional arguments ('varargin'). The array of kinematic data <b>K</b> contains three Cartesian coordinate vectors <b>x</b>, <b>y</b>, <b>z</b> and three angle vectors <b>&theta;</b>, <b>&psi;</b>, <b>&phi;</b> completely describing the 3D object position in time:</p>
+	<table align="center" border="0" width="650">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="650"><img src="gfx/equation_1.png"></td>
+	    </tr>
+	</table>
+	<p>where x<sub>i</sub>, y<sub>i</sub>, z<sub>i</sub> are the object gravity centre Cartesian coordinates and &theta;<sub>i</sub>, &psi;<sub>i</sub>, &phi;<sub>i</sub> are the pitch, yaw and roll angles in successive instants of time, i&isin;{1, 2, …, j}.</p>
+	<p>The transformation matrix <b>M</b> is taken as follows:</p>
+	<table align="center" border="0" width="650">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="650"><img src="gfx/equation_2.png"></td>
+	    </tr>
+	</table>
+	<p>where &theta;, &psi; and &phi; are the current values of pitch, yaw and roll angle, respectively.</p>
+    <p>The relationship of these angles to the orientation of the visualized object in space is illustrated on the picture below. A positive value of the pitch angle shows the object’s climb, a positive value of the yaw angle shows the object’s deviation to the right, and a positive value of the roll angle shows the tilting of the object to the right relative to its longitudinal axis. All of the position and angle values refer to the global inertial clockwise coordinate system with a north-oriented y axis. This means that an object with initial coordinates x<sub>0</sub> = 0, y<sub>0</sub> = 0, z<sub>0</sub> = 0, angle values &theta; = 0, &psi; = 0, &phi; = 0, and constant speed v = const will move along the y axis in the positive direction.</p>
+	<table align="center" border="0" width="650">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="650"><img src="gfx/graph_signs.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="650"><p class="image">| interpretation of pitch, yaw and roll angle signs |</p></td>
+		</tr>
+	</table>
+	<p>Finally, the 'flypath' function is executed to generate the scene and save the result in png or gif file format:</p>
+	<p class="code">flypath(object_1,object_2,...,object_n,varargin);</p>
+	<p>Detailed instructions for use of the software are provided further in this document.</p>
+	<h3>Table of functions</h3>
+	<!--- package_setup.m --->
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="header" width="800"><p><b>package_setup</b> | package_setup.m</p></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="800"><p>The <b>flypath3d</b> package check & configuration file</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Syntax:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">package_setup</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Parameters:</p></td>
+			<td class="normal" width="150"><p>(none)</p></td>
+			<td class="normal" width="500"><p>&nbsp;</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Opt. arguments:</p></td>
+			<td class="normal" width="150"><p>(none)</p></td>
+			<td class="normal" width="500"><p>&nbsp;</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150" valign="top"><p>Example of use:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">package_setup</p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	<!--- new_object.m --->
+	<br>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="header" width="800"><p><b>new_object</b> | new_object.m</p></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="800"><p>Creates 3d object data set for visualization</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Syntax:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">new_object(filename,matrix,varargin)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>Parameters:</p></td>
+			<td class="normal" width="150"><p>filename</p></td>
+			<td class="normal" width="500"><p>output set file name (*.mat)</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>matrix</p></td>
+			<td class="normal" width="500"><p>array of kinematic vectors data,
+			                               <br>matrix(:,1) - x Cartesian coordinate vector [m],
+										   <br>matrix(:,2) - y Cartesian coordinate vector [m],
+										   <br>matrix(:,3) - z Cartesian coordinate vector [m],
+										   <br>matrix(:,4) - pitch angle vector [rad],
+										   <br>matrix(:,5) - yaw angle vector [rad],
+										   <br>matrix(:,6) - roll angle vector [rad]</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>Opt. arguments:</p></td>
+			<td class="normal" width="150"><p>alpha</p></td>
+			<td class="normal" width="500"><p>alpha channel value (0-1 - default 1),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>edge</p></td>
+			<td class="normal" width="500"><p>model edge color ([R G B] - default [.4 .4 .4]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>face</p></td>
+			<td class="normal" width="500"><p>model face color ([R G B] - default [.5 .5 .5]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>model</p></td>
+			<td class="normal" width="500"><p>3d model file name (string - default 'missile.mat'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>path</p></td>
+			<td class="normal" width="500"><p>trajectory line visibility ('on','off' - default 'on'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>pathcolor</p></td>
+			<td class="normal" width="500"><p>trajectory line color ([R G B] - default [.3 .3 .3]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>pathwidth</p></td>
+			<td class="normal" width="500"><p>trajectory line width (default 1),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>scale</p></td>
+			<td class="normal" width="500"><p>model scale (default 1)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150" valign="top"><p>Example of use:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">trajectory = load('trajectory_tbm.mat');
+				<br>new_object('tbm.mat',trajectory,...
+				<br><span style="padding-left: 20px">'model','scud.mat','scale',5,...</span>
+				<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27]);</span></p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	<!--- flypath.m --->
+	<br>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="header" width="800"><p><b>flypath</b> | flypath.m</p></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="800"><p>Displays static and animated trajectories of missiles and air targets</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Syntax:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">flypath(object_1,object_2,...,object_n,varargin)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150" valign="top"><p>Parameters:</p></td>
+			<td class="normal" width="150" valign="top"><p>object_x</p></td>
+			<td class="normal" width="500"><p>object data set produced by 'new_object' function,<br>see 'new_object' function description<br>to get more information</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>Opt. arguments:</p></td>
+			<td class="normal" width="150"><p>animate</p></td>
+			<td class="normal" width="500"><p>animation on/off ('on','off' - default 'off'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>axis</p></td>
+			<td class="normal" width="500"><p>axes visibility ('on','off' - default 'on'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>axiscolor</p></td>
+			<td class="normal" width="500"><p>axes and axes font color ([R G B] - default [0 0 0]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>color</p></td>
+			<td class="normal" width="500"><p>display area color ([R G B] - default [1 1 1]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>dpi</p></td>
+			<td class="normal" width="500"><p>dpi value (75, 150, 300, 600 - default 150),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>font</p></td>
+			<td class="normal" width="500"><p>font name (string - default 'Times New Roman'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>fontsize</p></td>
+			<td class="normal" width="500"><p>font size (default 12),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>output</p></td>
+			<td class="normal" width="500"><p>output file name (string - default 'none'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>step</p></td>
+			<td class="normal" width="500"><p>model repetition density (default 10),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>view</p></td>
+			<td class="normal" width="500"><p>camera view angles ([azimuth elevation] - default [15 30]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>window</p></td>
+			<td class="normal" width="500"><p>display area size ([width height] - default [800 600]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>xlim</p></td>
+			<td class="normal" width="500"><p>x axes limits ([min max] or 'off' - default 'off'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>ylim</p></td>
+			<td class="normal" width="500"><p>y axes limits ([min max] or 'off' - default 'off'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150" valign="top"><p>zlim</p></td>
+			<td class="normal" width="500"><p>z axes limits ([min max] or 'off' - default 'off'),</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150" valign="top"><p>Example of use:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">trajectory = load('trajectory_tbm.mat');
+				<br>new_object('tbm.mat',trajectory,...
+				<br><span style="padding-left: 20px">'model','scud.mat','scale',5,...</span>
+				<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27]);</span>
+				<br>flypath('tbm.mat',... 
+				<br><span style="padding-left: 20px">'animate','off','step',30,...</span>
+				<br><span style="padding-left: 20px">'axis','on','axiscolor',[0 0 0],'color',[1 1 1],...</span>
+				<br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span>
+				<br><span style="padding-left: 20px">'view',[0 0],'window',[1800 600],... 
+				<br><span style="padding-left: 20px">'xlim',[-2e4 16e4],'ylim',[-10 10],'zlim',[0 4e4],... 
+				<br><span style="padding-left: 20px">'output','tbm_example.png','dpi',600);</span></p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	<!--- model_import.m --->
+	<br>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="header" width="800"><p><b>model_import</b> | model_import.m</p></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="800"><p>Converts *.obj mesh file to the vertex and face list *.mat file</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Syntax:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">model_import(filename,varargin)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Parameters:</p></td>
+			<td class="normal" width="150"><p>filename</p></td>
+			<td class="normal" width="500"><p>3d model file name (*.obj)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Opt. arguments:</p></td>
+			<td class="normal" width="150"><p>output</p></td>
+			<td class="normal" width="500"><p>output file name (string - default filename)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150" valign="top"><p>Example of use:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">model_import('model.obj');<br>model_import('model.obj','output','new_model.mat');</p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	<!--- model_show.m --->
+	<br>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="header" width="800"><p><b>model_show</b> | model_show.m</p></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="800"><p>Displays static and animated 3d models</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Syntax:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">model_show(filename,varargin)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>Parameters:</p></td>
+			<td class="normal" width="150"><p>filename</p></td>
+			<td class="normal" width="500"><p>3d model file name (*.mat)</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>Opt. arguments:</p></td>
+			<td class="normal" width="150"><p>alpha</p></td>
+			<td class="normal" width="500"><p>alpha channel value (0.0-1.0 - default 1.0),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>animate</p></td>
+			<td class="normal" width="500"><p>animation on/off ('on','off' - default 'off'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>color</p></td>
+			<td class="normal" width="500"><p>display area color ([R G B] - default [1 1 1]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>dpi</p></td>
+			<td class="normal" width="500"><p>dpi value (75, 150, 300, 600 - default 150),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>edge</p></td>
+			<td class="normal" width="500"><p>model edge color ([R G B] - default [.4 .4 .4]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>face</p></td>
+			<td class="normal" width="500"><p>model face color ([R G B] - default [.5 .5 .5]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>output</p></td>
+			<td class="normal" width="500"><p>output file name (string - default 'none'),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="inside" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>view</p></td>
+			<td class="normal" width="500"><p>camera view angles ([azimuth elevation] - default [15 30]),</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150"><p>&nbsp;</p></td>
+			<td class="normal" width="150"><p>window</p></td>
+			<td class="normal" width="500"><p>display area size ([width height] - default [800 600])</p></td>
+		</tr>
+	</table>
+	<table align="center" border="0" cellspacing="0" cellpadding="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td class="normal" width="150" valign="top"><p>Example of use:</p></td>
+			<td class="normal" width="650"><p class="code" style="margin-left: 0; margin-right: 0; padding: 0px 0px 0px 0px">model_show('model.mat');
+				<br>model_show('model.mat','output','model.png','dpi',600);
+				<br>model_show('model.mat','animate','on','output','model.gif');</p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	
+	<h2 id="examples">Examples of application</h2>
+	<p>The script described here can be applied in many fields. Several examples of possible package applications are presented below. The software can generate both static images and animations for several purposes, including among others: missile and/or air target flight trajectories (see section A and B), missile-target engagement visualizations (section D) and tactical scenes generation support (section E). Static images can be saved as png files with user-defined resolution. Animations can be made by including optional arguments for 'flypath' function. Animations are saved to the current Matlab® folder as animated gif images.</p>
+	<h3>A. Ballistic missile flight trajectory</h3>
+	<p>Copy code listed below and paste it into your Matlab® command window:</p>
+	<p class="code">
+		<span class="comment">% load ballistic missile trajectory from file</span>
+		<br>load('trajectory_tbm.mat');
+		<br>&nbsp;<br><span class="comment">% create an object</span>
+		<br>new_object('ballistic_missile.mat',data,...
+		<br><span style="padding-left: 20px">'model','scud.mat','scale',800,...</span>
+		<br><span style="padding-left: 20px">'edge',[0 0 0],'face',[0 0 0],'alpha',1,...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1);</span>
+		<br>&nbsp;<br><span class="comment">% ballistic missile trajectory visualization</span>
+		<br>flypath('ballistic_missile.mat',...
+		<br><span style="padding-left: 20px">'animate','off','step',30,...</span>
+		<br><span style="padding-left: 20px">'axis','on','axiscolor',[0 0 0],'color',[1 1 1],...</span>
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span>
+		<br><span style="padding-left: 20px">'view',[0 0],'window',[1800 600],...</span>
+		<br><span style="padding-left: 20px">'xlim',[-2e4 16e4],'ylim',[-10 10],'zlim',[0 4e4],...</span>
+		<br><span style="padding-left: 20px">'output','tbm_example.png','dpi',600);</span>
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_tbm.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| ballistic missile trajectory |</p></td>
+		</tr>
+	</table>
+	<p>An example code for animated version:</p>
+	<p class="code">
+		<span class="comment">% animation of ballistic missile trajectory</span>
+		<br>flypath('ballistic_missile.mat',...
+		<br><span style="padding-left: 20px">'animate','on','step',1,...</span>
+		<br><span style="padding-left: 20px">'axis','on','axiscolor',[0 0 0],'color',[1 1 1],...</span>
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',12,...</span>
+		<br><span style="padding-left: 20px">'view',[0 0],'window',[1800 600],...</span>
+		<br><span style="padding-left: 20px">'xlim',[-2e4 16e4],'ylim',[-10 10],'zlim',[0 4e4]);</span>
+	</p>
+	<h3>B. Air target trajectory</h3>
+	<p>Copy code listed below and paste it into your Matlab® command window:</p>
+	<p class="code">
+		<span class="comment">% load aircraft trajectory from file</span>
+		<br>load('trajectory_aircraft.mat');
+		<br>&nbsp;<br><span class="comment">% create an object</span>
+		<br>new_object('aircraft.mat',data,...
+		<br><span style="padding-left: 20px">'model','f-16.mat','scale',100,...</span>
+		<br><span style="padding-left: 20px">'edge',[0 0 0],'face',[0 0 0],'alpha',1,...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1);</span>
+		<br>&nbsp;<br><span class="comment">% aircraft trajectory visualization</span>
+		<br>flypath('aircraft.mat',...
+		<br><span style="padding-left: 20px">'animate','off','step',150,...</span>
+		<br><span style="padding-left: 20px">'axis','on','axiscolor',[0 0 0],'color',[1 1 1],...</span>
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span>
+		<br><span style="padding-left: 20px">'view',[0 90],'window',[1800 900],...</span>
+		<br><span style="padding-left: 20px">'xlim',[-15e3 10e3],'ylim',[-5e3 25e3],'zlim',[-15e3 15e3],...</span>
+		<br><span style="padding-left: 20px">'output','aircraft_example.png','dpi',600);</span>
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="600"><img src="gfx/graph_aircraft_1.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="600"><p class="image">| aircraft trajectory |</p></td>
+		</tr>
+	</table>
+	<p>Use the standard Matlab® command set to display your trajectory anyhow you want, e.g.:</p>
+	<p class="code">view([45 25]);<br>grid <b>off</b>;</p>
+	<table align="center" border="0" width="600">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="600"><img src="gfx/graph_aircraft_2.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="600"><p class="image">| aircraft trajectory |</p></td>
+		</tr>
+	</table>
+	<p>Animated version:</p>
+	<p class="code">
+		<span class="comment">% load aircraft trajectory from file</span>
+		<br>load('trajectory_circle.mat');
+		<br>&nbsp;<br><span class="comment">% create an object</span>
+		<br>new_object('aircraft.mat',data,...
+		<br><span style="padding-left: 20px">'model','f-16.mat','scale',150,...</span>
+		<br><span style="padding-left: 20px">'edge',[0 0 0],'face',[0 0 0],'alpha',1,...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1);</span>
+		<br>&nbsp;<br><span class="comment">% aircraft trajectory animation</span>
+		<br>flypath('aircraft.mat',...
+		<br><span style="padding-left: 20px">'animate','on','step',5,...</span>
+		<br><span style="padding-left: 20px">'axis','on','axiscolor',[0 0 0],'color',[1 1 1],...</span>
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',10,...</span>
+		<br><span style="padding-left: 20px">'view',[45 30],'window',[800 420],...</span>
+		<br><span style="padding-left: 20px">'xlim',[-10e3 10e3],'ylim',[-10e3 10e3],'zlim',[0 2e3],...</span>
+		<br><span style="padding-left: 20px">'output','test.gif');</span>
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_aircraft_3.gif"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| animation of aircraft trajectory |</p></td>
+		</tr>
+	</table>
+	<p>Aileron roll example code:</p>
+	<p class="code">
+		<span class="comment">% prepare environment and generate aircraft trajectory</span>
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc;
+		<br>data = zeros(400,6);
+		<br>&nbsp;<br><span class="comment">% x, y and z coordinates</span>	
+		<br>data(:,1) = 0;
+		<br>data(:,2) = .5:.5:200;
+		<br>data(:,3) = 500;
+		<br>&nbsp;<br><span class="comment">% pitch, yaw and roll angle values</span>
+		<br>data(:,4) = 0;
+		<br>data(:,5) = 0;
+		<br>data(21:380,6) = (1:1:360)/57.3;
+		<br>&nbsp;<br><span class="comment">% prepare aircraft simulation model</span>
+		<br>new_object('aircraft.mat',data,... 
+		<br><span style="padding-left: 20px">'model','f-16.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1,'scale',1);</span>
+		<br>&nbsp;<br><span class="comment">% generate the scene and save the result as gif file</span>
+		<br>flypath('aircraft.mat',... 
+		<br><span style="padding-left: 20px">'animate','on','step',3,...</span> 
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',10,...</span> 
+		<br><span style="padding-left: 20px">'view',[35 45],'window',[700 700],...</span> 
+		<br><span style="padding-left: 20px">'output','aileron_roll.gif',...</span> 
+		<br><span style="padding-left: 20px">'xlim',[-20 20],'ylim',[0 200],'zlim',[480 520]);</span>
+	</p>
+	<table align="center" border="0" width="700">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="700"><img src="gfx/graph_aircraft_4.gif"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="700"><p class="image">| animation of aileron roll |</p></td>
+		</tr>
+	</table>
+	<h3>C. Visualization of missile airframe stability</h3>
+	<p>You can also use the <b>flypath3d</b> package to visualize missile model data collected e.g. during wind tunnel tests. Copy code listed below and paste it into your Matlab® command window to run the example of missile airframe stability problem:</p>
+	<p class="code">
+		<span class="comment">% load stabilized missile airframe data (with autopilot)</span>
+		<br>load('airframe_stabilized.mat');
+        <br>new_object('missile_ap.mat',data,...
+        <br><span style="padding-left: 20px">'model','missile.mat','scale',1,...</span> 
+        <br><span style="padding-left: 20px">'edge','none','face',[0 0 0],'alpha',.6,...</span> 
+        <br><span style="padding-left: 20px">'path','off');</span>
+        <br>&nbsp;<br><span class="comment">% load non-stabilized missile airframe data (without autopilot)</span>
+		<br>load('airframe_nonstabilized.mat');
+        <br>new_object('missile_nonap.mat',data,...
+        <br><span style="padding-left: 20px">'model','missile.mat','scale',1,...</span>
+        <br><span style="padding-left: 20px">'edge','none','face',[.89 .0 .27],'alpha',.6,...</span>
+        <br><span style="padding-left: 20px">'path','off');</span>
+		<br>&nbsp;<br><span class="comment">% generate the scene</span>
+		<br>flypath('missile_ap.mat','missile_nonap.mat',...
+		<br><span style="padding-left: 20px">'xlim',[-1.5 1.5],'ylim',[-2.0 2.0],'zlim',[-1.5 1.5],...</span>
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',12,...</span>
+		<br><span style="padding-left: 20px">'view',[0 90],'animate','on','step',200);</span>	
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_airframe.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of missile airframe stability |</p></td>
+		</tr>
+	</table>
+	<h3>D. Target-missile engagement visualization</h3>
+	<p>Copy code listed below and paste it into your Matlab® command window:</p>
+	<p class="code">
+		<span class="comment">% prepare environment</span> 
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc; 
+		<br>&nbsp;<br><span class="comment">% insert enemy aircraft</span>
+		<br>load('trajectory_enemy.mat'); 
+		<br>new_object('enemy.mat',data,... 
+		<br><span style="padding-left: 20px">'model','f-16.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.3 .3 .3],'pathwidth',1,'scale',10.0);</span> 
+		<br>&nbsp;<br><span class="comment">% insert friendly aircraft</span>
+		<br>load('trajectory_friend.mat'); 
+		<br>new_object('friend.mat',data,... 
+		<br><span style="padding-left: 20px">'model','f-16.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .27 .0],'pathwidth',1,'scale',10.0);</span> 
+		<br>&nbsp;<br><span class="comment">% insert air-to-air missile</span>
+		<br>load('trajectory_aam.mat'); 
+		<br>new_object('aam.mat',data,... 
+		<br><span style="padding-left: 20px">'model','missile.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .47 .0],'pathwidth',1,'scale',10.0);</span>
+		<br>&nbsp;<br><span class="comment">% generate the scene and save the result as png file</span>
+		<br>flypath('friend.mat','enemy.mat','aam.mat',... 
+		<br><span style="padding-left: 20px">'animate','off','step',9000,...</span> 
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span> 
+		<br><span style="padding-left: 20px">'view',[-90 90],'window',[1000 280],...</span>
+		<br><span style="padding-left: 20px">'output','combat_example.png','dpi',600,...</span>
+		<br><span style="padding-left: 20px">'xlim',[-500 500],'ylim',[-500 3500],'zlim',[500 1500]);</span> 
+	</p>
+	<table align="center" border="0" width="1000">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="1000"><img src="gfx/graph_combat_1.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="1000"><p class="image">| visualization of target-missile engagement |</p></td>
+		</tr>
+	</table>
+	<p>Animated version:</p>
+	<p class="code">
+		<span class="comment">% generate the scene and save the result as animated gif file</span>
+		<br>flypath('friend.mat','enemy.mat','aam.mat',... 
+		<br><span style="padding-left: 20px">'animate','on','step',500,...</span> 
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',10,...</span> 
+		<br><span style="padding-left: 20px">'view',[-90 90],'window',[1000 280],...</span>
+		<br><span style="padding-left: 20px">'output','combat_example.gif',...</span>
+		<br><span style="padding-left: 20px">'xlim',[-500 500],'ylim',[-500 3500],'zlim',[500 1500]);</span> 
+	</p>
+	<table align="center" border="0" width="1000">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="1000"><img src="gfx/graph_combat_2.gif"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="1000"><p class="image">| animated visualization of target-missile engagement |</p></td>
+		</tr>
+	</table>
+	<p>Visualization of air-to-air missile launch:</p>
+	<p class="code">
+		<span class="comment">% prepare environment</span>
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc; 
+		<br>&nbsp;<br><span class="comment">% insert friendly aircraft</span> 
+		<br>load('trajectory_friend.mat'); 
+		<br>new_object('friend.mat',data(1:2000,:),...</span> 
+		<br><span style="padding-left: 20px">'model','f-16.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .27 .0],'pathwidth',1,'scale',1.0);</span> 
+		<br>&nbsp;<br><span class="comment">% insert air-to-air missile</span> 
+		<br>load('trajectory_aam.mat'); 
+		<br><span style="padding-left: 20px">new_object('aam.mat',data(1:2000,:),...</span>
+		<br><span style="padding-left: 20px">'model','missile.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .47 .0],'pathwidth',1,'scale',1.0);</span> 
+		<br>&nbsp;<br><span class="comment">% generate the scene and save the result as gif animated file</span> 
+		<br>flypath('friend.mat','aam.mat',... 
+		<br><span style="padding-left: 20px">'animate','on','step',20,...</span>
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',10,...</span> 
+		<br><span style="padding-left: 20px">'view',[150 25],'window',[800 675],...</span>
+		<br><span style="padding-left: 20px">'output','missile_launch.gif',...</span> 
+		<br><span style="padding-left: 20px">'xlim',[-20 20],'ylim',[0 200],'zlim',[980 1020]);</span> 
+	</p>
+	<table align="center" border="0" width="1000">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="1000"><img src="gfx/graph_combat_3.gif"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="1000"><p class="image">| visualization of missile launch |</p></td>
+		</tr>
+	</table>
+	<p>Visualization of target hit moment:</p>
+	<p class="code">
+		<span class="comment">% prepare environment</span>
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc; 
+		<br>&nbsp;<br><span class="comment">% insert enemy aircraft</span>
+		<br>load('trajectory_enemy.mat'); 
+		<br>new_object('enemy.mat',data(32000:35100,:),... 
+		<br><span style="padding-left: 20px">'model','f-16.mat','edge',[.4 .4 .4],'face',[.6 .6 .6],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.3 .3 .3],'pathwidth',1,'scale',1.0);</span> 
+		<br>&nbsp;<br><span class="comment">% insert air-to-air missile</span>
+		<br>load('trajectory_aam.mat'); 
+		<br>new_object('aam.mat',data(32000:35100,:),... 
+		<br><span style="padding-left: 20px">'model','missile.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .47 .0],'pathwidth',1,'scale',1.0);</span>
+		<br>&nbsp;<br><span class="comment">% generate the scene and save the result as png file</span> 
+		<br>flypath('enemy.mat','aam.mat',... 
+		<br><span style="padding-left: 20px">'animate','on','step',20,...</span>
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',10,...</span> 
+		<br><span style="padding-left: 20px">'view',[30 20],'window',[570 700],...</span> 
+		<br><span style="padding-left: 20px">'output','hit_to_kill.gif',...</span> 
+		<br><span style="padding-left: 20px">'xlim',[-200 -140],'ylim',[3300 3400],'zlim',[1150 1250]);</span> 
+	</p>
+	<table align="center" border="0" width="1000">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="570"><img src="gfx/graph_combat_4.gif"></td>
+			<td width="430"><img src="gfx/graph_combat_5.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="570"><p class="image">| visualization of missile-target engagement |</p></td>
+			<td width="430"><p class="image">| visualization of miss distance |</p></td>
+		</tr>
+	</table>
+	<h3>E. Visualization of tactical scene</h3>
+	<p>There is possibility to use <b>flypath3d</b> package for tactical data visualization. The example code listed below shows the way to combine <b>flypath3d</b> functions with standard Matlab® code for advanced 3d data presentation (simply copy code into your Matlab® command window to run).</p>
+	<p class="code">
+		<span class="comment">% prepare environment</span>
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc;
+		<br>&nbsp;<br><span class="comment">% generate terrain using build-in peaks() function</span>
+		<br>[x,y] = meshgrid(0:10:500,0:10:500);
+        <br>z = peaks(51);
+        <br><b>for</b> i = 1:1:51
+        <br><span style="padding-left: 20px"><b>for</b> j = 1:1:51</span>
+        <br><span style="padding-left: 40px"><b>if</b> z(i,j) < 0</span>
+	    <br><span style="padding-left: 60px">z(i,j) = 0;</span>
+	    <br><span style="padding-left: 40px"><b>else</b></span>
+	    <br><span style="padding-left: 60px">z(i,j) = 10*z(i,j);</span>
+	    <br><span style="padding-left: 40px"><b>end</b>;</span>
+        <br><span style="padding-left: 20px"><b>end</b>;</span>
+        <br><b>end</b>;
+		<br>&nbsp;<br><span class="comment">% generate 50 random trees</span>
+		<br>xt = 0.35*ceil(1000*rand(1,50))+100;
+        <br>yt = 0.50*ceil(1000*rand(1,50));
+		<br><b>for</b> i = 1:1:50
+		<br><span style="padding-left: 20px">data = zeros(60,6);</span>
+        <br><span style="padding-left: 20px">data(:,1) = xt(i);</span>
+        <br><span style="padding-left: 20px">data(:,2) = yt(i);</span>
+        <br><span style="padding-left: 20px">data(:,3) = z(ceil(yt(i)/10),ceil(xt(i)/10))-2*rand;</span> 
+        <br><span style="padding-left: 20px">data(:,5) = pi*rand;</span>
+        <br><span style="padding-left: 20px">scale = 1.1+rand+rand;</span>
+        <br><span style="padding-left: 20px">filename = strcat('tree_',num2str(i),'.mat');</span>
+        <br><span style="padding-left: 20px">new_object(filename,data,...</span>
+		<br><span style="padding-left: 40px">'model','tree.mat','edge',[.20 .22 .20],'face',[.40 .42 .40],...</span>
+		<br><span style="padding-left: 40px">'path','off','scale',scale);</span>
+        <br><b>end</b>;
+		<br>&nbsp;<br><span class="comment">% insert missile launcher no. 1 at (50,310,0) position</span>
+		<br>data = zeros(60,6);
+		<br>data(:,1) = 50;
+        <br>data(:,2) = 310;
+        <br>data(:,3) = 0; 
+        <br>data(:,5) = pi/2;
+        <br>new_object('launcher_1.mat',data,...
+		<br><span style="padding-left: 20px">'model','launcher-0.mat','edge',[.1 .1 .1],'face',[.3 .3 .3],...</span>
+		<br><span style="padding-left: 20px">'path','off','scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert missile launcher no. 2 at (20,260,0) position</span>
+		<br>data = zeros(60,6);
+		<br>data(:,1) = 20;
+        <br>data(:,2) = 260;
+        <br>data(:,3) = 0; 
+        <br>data(:,5) = pi/7;
+        <br>new_object('launcher_2.mat',data,...
+		<br><span style="padding-left: 20px">'model','launcher-90.mat','edge',[.1 .1 .1],'face',[.3 .3 .3],...</span>
+		<br><span style="padding-left: 20px">'path','off','scale',2.0);</span>
+        <br>&nbsp;<br><span class="comment">% insert missile launcher no. 3 at (80,290,0) position</span>
+		<br>data = zeros(60,6);
+		<br>data(:,1) = 80;
+        <br>data(:,2) = 290;
+        <br>data(:,3) = 0; 
+        <br>data(:,5) = -pi/8;
+        <br>new_object('launcher_3.mat',data,...
+		<br><span style="padding-left: 20px">'model','launcher-0.mat','edge',[.1 .1 .1],'face',[.3 .3 .3],...</span>
+		<br><span style="padding-left: 20px">'path','off','scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert multirole fighter</span>
+		<br>load('trajectory_strike.mat');
+        <br>new_object('aircraft.mat',data,...
+		<br><span style="padding-left: 20px">'model','f-16.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1,'scale',1.1);</span>
+		<br>&nbsp;<br><span class="comment">% insert unguided bomb</span>
+		<br>load('trajectory_bomb.mat');
+        <br>new_object('bomb.mat',data,...
+		<br><span style="padding-left: 20px">'model','missile.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .47 .0],'pathwidth',1,'scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% generate the scene</span>
+		<br>flypath('bomb.mat','aircraft.mat',...
+		<br><span style="padding-left: 20px">'launcher_1.mat','launcher_2.mat','launcher_3.mat',...</span>
+        <br><span style="padding-left: 20px">'tree_1.mat','tree_2.mat','tree_3.mat','tree_4.mat','tree_5.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_6.mat','tree_7.mat','tree_8.mat','tree_9.mat','tree_10.mat',...</span>
+        <br><span style="padding-left: 20px">'tree_11.mat','tree_12.mat','tree_13.mat','tree_14.mat','tree_15.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_16.mat','tree_17.mat','tree_18.mat','tree_19.mat','tree_20.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_21.mat','tree_22.mat','tree_23.mat','tree_24.mat','tree_25.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_26.mat','tree_27.mat','tree_28.mat','tree_29.mat','tree_30.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_31.mat','tree_32.mat','tree_33.mat','tree_34.mat','tree_35.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_36.mat','tree_37.mat','tree_38.mat','tree_39.mat','tree_40.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_41.mat','tree_42.mat','tree_43.mat','tree_44.mat','tree_45.mat',...</span>
+		<br><span style="padding-left: 20px">'tree_46.mat','tree_47.mat','tree_48.mat','tree_49.mat','tree_50.mat',...</span>
+		<br><span style="padding-left: 20px">'animate','off','output','none','step',5,...</span> 
+        <br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span>
+        <br><span style="padding-left: 20px">'view',[0 0],'xlim',[0 500],'ylim',[0 500],'zlim',[0 200]);</span>
+		<br>surf(x,y,z,...
+		<br><span style="padding-left: 20px">'FaceColor',[.8 .8 .8],'EdgeColor',[.7 .7 .7],'FaceAlpha',1,'EdgeAlpha',1);</span>
+		<br>&nbsp;<br><span class="comment">% save the result as png file</span>
+		<br>filename = 'tactical_scene.png';
+		<br>eval(sprintf('print -dpng -r600 %s;',filename));
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_tactical_1.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of tactical scene |</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_tactical_2.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of tactical scene |</p></td>
+		</tr>
+	</table>
+	<p>Check another examples of code to learn about the capabilities of the <b>flypath3d</b> package:</p>
+	<p class="code">
+		<span class="comment">% prepare environment</span>
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc;
+		<br>&nbsp;<br><span class="comment">% generate simplified sea surface using build-in peaks() function</span>
+		<br>sea_surf = peaks(500) + repmat(peaks(250),2,2);
+		<br>&nbsp;<br><span class="comment">% insert kara-class cruiser</span>
+		<br><span class="comment">% disclaimer:</span> 
+		<br><span class="comment">% the kara-class cruiser model is not included with the flypath3d package,</span>
+		<br><span class="comment">% but you can download it (for personal use only) from http://tf3dm.com</span>
+        <br>data = zeros(10000,6); 
+		<br>data(:,1) = 180; 
+		<br>data(:,2) = 290; 
+		<br>data(:,3) = 0; 
+		<br>data(:,4) = pi/48;
+		<br>data(:,5) = -pi/8; 
+		<br>new_object('ship.mat',data,... 
+		<br><span style="padding-left: 20px">'model','kara_cruiser.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],... 
+		<br><span style="padding-left: 20px">'path','off','scale',1.0);
+		<br>&nbsp;<br><span class="comment">% insert hovering helicopter</span>
+		<br>data = zeros(10000,6); 
+		<br>data(:,1) = 350; 
+		<br>data(:,2) = 140; 
+		<br>data(:,3) = 450; 
+		<br>data(:,5) = -pi/2;
+        <br>new_object('helicopter.mat',data,...
+		<br><span style="padding-left: 20px">'model','mi-24.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1,'scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert surface-to-air missile</span>
+		<br>load('trajectory_sam.mat');
+        <br>new_object('sam.mat',data,...
+		<br><span style="padding-left: 20px">'model','missile.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1,'scale',4.0);</span>
+		<br>&nbsp;<br><span class="comment">% generate the scene</span>
+		<br>flypath('ship.mat','sam.mat','helicopter.mat',...
+		<br><span style="padding-left: 20px">'animate','off','output','none','step',1000,...</span> 
+        <br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span>
+        <br><span style="padding-left: 20px">'view',[-45 30],'xlim',[0 500],'ylim',[0 500],'zlim',[0 500]);</span>
+		<br>[x,y,z] = sphere(20);
+		<br>surf(317.1+20*x,180.1+20*y,468.9+20*z,...
+		<br><span style="padding-left: 20px">'EdgeColor','none','FaceColor',[.89 .0 .27],'FaceAlpha',.2);</span>
+		<br>surf(sea_surf,...
+		<br><span style="padding-left: 20px">'FaceColor',[.2 .4 .9],'EdgeColor',[.9 .9 .9],'FaceAlpha',1,'EdgeAlpha',.2);</span>
+		<br>&nbsp;<br><span class="comment">% save the result as png file</span>
+		<br>filename = 'tactical_scene.png';
+		<br>eval(sprintf('print -dpng -r600 %s;',filename));
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_naval_1.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of naval scene |</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_naval_2.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of naval scene |</p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	<h3>F. Various examples</h3>
+	<p>Visualization of fireball radius of nuclear airburst:</p>
+	<p class="code">
+		<span class="comment">% prepare environment</span>
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc;
+		<br>&nbsp;<br><span class="comment">% generate simplified sea surface using build-in peaks() function</span>
+		<br>[x,y] = meshgrid(-400:1:400,-400:1:400);
+		<br>sea_surf = peaks(800) + repmat(peaks(400),2,2) + repmat(peaks(200),4,4); 
+		<br>sea_surf(:,801) = 0;
+		<br>sea_surf(801,:) = 0;
+		<br>sea_surf = 0.7*sea_surf;
+		<br>&nbsp;<br><span class="comment">% insert manhattan island</span>
+		<br><span class="comment">% disclaimer:</span> 
+		<br><span class="comment">% the manhattan model is not included with the flypath3d package,</span>
+		<br><span class="comment">% but you can download it (for personal use only) from http://aipos3d.com</span>
+		<br>data = zeros(100,6); 
+		<br>new_object('city.mat',data,... 
+		<br><span style="padding-left: 20px">'model','manhattan.mat','edge',[.2 .2 .2],'face',[.4 .4 .4],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1,'scale',5.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert battleship no. 1</span>
+		<br><span class="comment">% disclaimer:</span> 
+		<br><span class="comment">% the kara-class cruiser model is not included with the flypath3d package,</span>
+		<br><span class="comment">% but you can download it (for personal use only) from http://tf3dm.com</span>
+		<br>data = zeros(100,6); 
+		<br>data(:,1) = 180; 
+		<br>data(:,2) = 320; 
+		<br>data(:,3) = 0; 
+		<br>data(:,4) = pi/32; 
+		<br>data(:,5) = -pi/8; 
+		<br>new_object('ship_1.mat',data,... 
+		<br><span style="padding-left: 20px">'model','kara_cruiser.mat','edge',[.2 .2 .2],'face',[.4 .4 .4],...</span>
+		<br><span style="padding-left: 20px">'path','off','scale',1.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert battleship no. 2</span>
+		<br>data = zeros(100,6); 
+		<br>data(:,1) = -100; 
+		<br>data(:,2) = 220; 
+		<br>data(:,3) = 0; 
+		<br>data(:,4) = -pi/16; 
+		<br>data(:,5) = pi/6; 
+		<br>new_object('ship_2.mat',data,... 
+		<br><span style="padding-left: 20px">'model','kara_cruiser.mat','edge',[.2 .2 .2],'face',[.4 .4 .4],...</span> 
+		<br><span style="padding-left: 20px">'path','off','scale',1.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert hovering helicopter no. 1</span>
+		<br>data = zeros(100,6); 
+		<br>data(:,1) = 100; 
+		<br>data(:,2) = 200; 
+		<br>data(:,3) = 300; 
+		<br>data(:,5) = -pi/2; 
+		<br>new_object('heli_1.mat',data,... 
+		<br><span style="padding-left: 20px">'model','mi-24.mat','edge',[.2 .2 .2],'face',[.4 .4 .4],...</span> 
+		<br><span style="padding-left: 20px">'path','off','scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert hovering helicopter no. 2</span> 
+		<br>data = zeros(100,6); 
+		<br>data(:,1) = 50; 
+		<br>data(:,2) = 230; 
+		<br>data(:,3) = 250; 
+		<br>data(:,5) = -pi/2; 
+		<br>new_object('heli_2.mat',data,... 
+		<br><span style="padding-left: 20px">'model','mi-24.mat','edge',[.2 .2 .2],'face',[.4 .4 .4],...</span>
+		<br><span style="padding-left: 20px">'path','off','scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert launcher no. 1</span>
+		<br>data = zeros(100,6); 
+		<br>data(:,1) = 209; 
+		<br>data(:,2) = -127; 
+		<br>data(:,3) = 9; 
+		<br>data(:,5) = pi/2; 
+		<br>new_object('launcher_1.mat',data,... 
+		<br><span style="padding-left: 20px">'model','launcher-0.mat','edge',[.2 .2 .2],'face',[.4 .4 .4],...</span>
+		<br><span style="padding-left: 20px">'path','off','scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert launcher no. 2</span>
+		<br>data = zeros(100,6); 
+		<br>data(:,1) = 183; 
+		<br>data(:,2) = -137; 
+		<br>data(:,3) = 9; 
+		<br>data(:,5) = pi/7; 
+		<br>new_object('launcher_2.mat',data,... 
+		<br><span style="padding-left: 20px">'model','launcher-90.mat','edge',[.2 .2 .2],'face',[.4 .4 .4],...</span>
+		<br><span style="padding-left: 20px">'path','off','scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert ballistic missile</span>
+		<br>data = zeros(100,6);  
+		<br>data(:,2) = linspace(-300,-100); 
+		<br>data(:,3) = linspace(800,200); 
+		<br>data(:,4) = -1.249; 
+		<br>new_object('nuke.mat',data,... 
+		<br><span style="padding-left: 20px">'model','scud.mat','edge',[0 0 0],'face',[0 0 0],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1,'scale',2.0);</span>
+		<br>&nbsp;<br><span class="comment">% generate the scene</span>
+		<br>flypath('city.mat','ship_1.mat','ship_2.mat','heli_1.mat','heli_2.mat',...
+		<br><span style="padding-left: 20px">'launcher_1.mat','launcher_2.mat','nuke.mat',...</span>
+		<br><span style="padding-left: 20px">'animate','off','output','none','step',99,...</span> 
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span>
+		<br><span style="padding-left: 20px">'view',[90 0],'xlim',[-400 400],'ylim',[-400 400],'zlim',[0 400]);</span>
+		<br>&nbsp;<br>surf(x,y,sea_surf,... 
+		<br><span style="padding-left: 20px">'FaceColor',[.2 .4 .9],'EdgeColor',[.9 .9 .9],'FaceAlpha',1,'EdgeAlpha',.2);</span>
+		<br>&nbsp;<br><span class="comment">% fireball radius of 0.5 kt nuke blast</span>
+		<br>[x,y,z] = sphere(100); 
+		<br>surf(50*x,-100+50*y,200+50*z,... 
+		<br><span style="padding-left: 20px">'EdgeColor','none','FaceColor',[.89 .0 .27],'FaceAlpha',.4);</span>
+		<br>text(0,-80,210,'0.5 kt','FontName','Georgia','FontSize',6);
+		<br>&nbsp;<br><span class="comment">% fireball radius of 10 kt nuke blast</span>
+		<br>[x,y,z] = sphere(100); 
+		<br>surf(150*x,-100+150*y,200+150*z,... 
+		<br><span style="padding-left: 20px">'EdgeColor','none','FaceColor',[.89 .0 .27],'FaceAlpha',.3);</span>
+		<br>text(0,10,210,'10 kt','FontName','Georgia','FontSize',6);
+		<br>&nbsp;<br><span class="comment">% fireball radius of 45 kt nuke blast</span>
+		<br>[x,y,z] = sphere(100); 
+		<br>surf(280*x,-100+280*y,200+280*z,... 
+		<br><span style="padding-left: 20px">'EdgeColor','none','FaceColor',[.89 .0 .27],'FaceAlpha',.2);</span>
+		<br>text(0,140,210,'45 kt','FontName','Georgia','FontSize',6);
+		<br>&nbsp;<br><span class="comment">% fireball radius of 100 kt nuke blast</span>
+		<br>[x,y,z] = sphere(100); 
+		<br>surf(380*x,-100+380*y,200+380*z,... 
+		<br><span style="padding-left: 20px">'EdgeColor','none','FaceColor',[.89 .0 .27],'FaceAlpha',.1);</span>
+		<br>text(0,230,210,'100 kt','FontName','Georgia','FontSize',6);
+		<br>&nbsp;<br><span class="comment">% save the result as png file</span>
+		<br>filename = 'nuke_blast.png';
+		<br>eval(sprintf('print -dpng -r600 %s;',filename));
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_nuke_1.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of fireball radius of nuclear airburst |</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_nuke_2.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of fireball radius of nuclear airburst |</p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	<p>Visualization of naval tactical scene:</p>
+	<p class="code">
+	<span class="comment">% prepare environment</span>
+		<br>clear <b>all</b>;<br>close <b>all</b>;<br>clc;
+		<br>&nbsp;<br><span class="comment">% generate terrain using build-in peaks() function</span>
+		<br>[x,y] = meshgrid(0:10:500,0:10:500);
+        <br>z = peaks(51);
+        <br><b>for</b> i = 1:1:51
+        <br><span style="padding-left: 20px"><b>for</b> j = 1:1:51</span>
+        <br><span style="padding-left: 40px"><b>if</b> z(i,j) < 0</span>
+	    <br><span style="padding-left: 60px">z(i,j) = 0;</span>
+	    <br><span style="padding-left: 40px"><b>else</b></span>
+	    <br><span style="padding-left: 60px">z(i,j) = 40*z(i,j);</span>
+	    <br><span style="padding-left: 40px"><b>end</b>;</span>
+        <br><span style="padding-left: 20px"><b>end</b>;</span>
+        <br><b>end</b>;
+		<br>z = z-100;
+		<br>&nbsp;<br><span class="comment">% insert multirole fighter</span>
+		<br>load('trajectory_strike.mat'); 
+		<br>new_object('aircraft.mat',data,... 
+		<br><span style="padding-left: 20px">'model','f-16.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .0 .27],'pathwidth',1,'scale',1.5);</span>
+		<br>&nbsp;<br><span class="comment">% insert helicopter no. 1</span>
+		<br>alpha = 0:pi/30:2*pi-pi/30;
+		<br>data = zeros(60,6);
+		<br>data(:,1) = 100*cos(alpha)+250;
+		<br>data(:,2) = 100*sin(alpha)+380;
+		<br>data(:,3) = linspace(50,250,60);
+		<br>data(:,4) = 0;
+		<br>data(:,5) = -alpha;
+		<br>data(:,6) = -pi/8;
+		<br>new_object('heli_1.mat',data,... 
+		<br><span style="padding-left: 20px">'model','mi-24.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span>
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.0 .89 .27],'pathwidth',1,'scale',1.5);</span>
+		<br>&nbsp;<br><span class="comment">% insert helicopter no. 2</span>
+		<br>data = zeros(60,6);
+		<br>data(:,1) = 100*cos(alpha)+110;
+		<br>data(:,2) = 100*sin(alpha)+130;
+		<br>data(:,3) = 100;
+		<br>data(:,4) = 0;
+		<br>data(:,5) = -alpha;
+		<br>data(:,6) = -pi/8;
+		<br>new_object('heli_2.mat',data,... 
+		<br><span style="padding-left: 20px">'model','mi-24.mat','edge',[.1 .1 .1],'face',[.1 .1 .1],...</span> 
+		<br><span style="padding-left: 20px">'path','on','pathcolor',[.89 .47 .0],'pathwidth',1,'scale',1.5);</span>
+		<br>&nbsp;<br><span class="comment">% insert kara-class cruiser</span>
+		<br><span class="comment">% disclaimer:</span> 
+		<br><span class="comment">% the kara-class cruiser model is not included with the flypath3d package,</span> 
+		<br><span class="comment">% but you can download it (for personal use only) from http://tf3dm.com</span> 
+		<br>data = zeros(60,6); 
+		<br>data(:,1) = 110; 
+		<br>data(:,2) = 80; 
+		<br>data(:,3) = 0; 
+		<br>data(:,4) = 0; 
+		<br>data(:,5) = pi/8; 
+		<br>new_object('ship_1.mat',data,... 
+		<br><span style="padding-left: 20px">'model','kara_cruiser.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span> 
+		<br><span style="padding-left: 20px">'path','off','scale',1.0);</span>
+		<br>&nbsp;<br><span class="comment">% insert tarantula-class corvette</span>
+		<br><span class="comment">% disclaimer:</span> 
+		<br><span class="comment">% the tarantula-class corvette model is not included with the flypath3d package,</span> 
+		<br><span class="comment">% but you can download it (for personal use only) from http://tf3dm.com</span>
+		<br>data = zeros(60,6); 
+		<br>data(:,1) = 140; 
+		<br>data(:,2) = 150; 
+		<br>data(:,3) = 0; 
+		<br>data(:,4) = 0; 
+		<br>data(:,5) = pi/5; 
+		<br>new_object('ship_2.mat',data,... 
+		<br><span style="padding-left: 20px">'model','tarantula_corvette.mat','edge',[.2 .2 .2],'face',[.3 .3 .3],...</span> 
+		<br><span style="padding-left: 20px">'path','off','scale',1.0);</span> 
+		<br>&nbsp;<br><span class="comment">% generate the scene</span>
+		<br>flypath('aircraft.mat','heli_1.mat','heli_2.mat','ship_1.mat','ship_2.mat',... 
+		<br><span style="padding-left: 20px">'animate','off','output','none','step',10,...</span> 
+		<br><span style="padding-left: 20px">'font','Georgia','fontsize',6,...</span> 
+		<br><span style="padding-left: 20px">'view',[45 10],'xlim',[0 500],'ylim',[0 500],'zlim',[-100 500]);</span>
+		<br>&nbsp;<br><span class="comment">% terrain and water</span>
+		<br>surf(x,y,z,... 
+		<br><span style="padding-left: 20px">'FaceColor',[.8 .6 .0],'EdgeColor',[.9 .7 .4]);</span>
+		<br>hold <b>on</b>;
+		<br>&nbsp;<br>X=[0 0 0 500; 500 0 500 500; 500 0 500 500; 0 0 0 500]; 
+		<br>Y=[0 0 500 0; 0 500 500 500; 0 500 500 500; 0 0 500 0]; 
+		<br>Z=[-100 -100 -100 -100; -100 -100 -100 -100; 0 0 0 0; 0 0 0 0];
+		<br>C=[.2 .6 .8];
+		<br>fill3(X,Y,Z,C,'FaceAlpha',.3,'EdgeColor','none');
+		<br>&nbsp;<br>X=[0; 500; 500; 0]; 
+		<br>Y=[0; 0; 500; 500]; 
+		<br>Z=[0; 0; 0; 0];
+		<br>C=[.2 .6 .8];
+		<br>fill3(X,Y,Z,C,'FaceAlpha',.7,'EdgeColor','none');
+		<br>&nbsp;<br><span class="comment">% the sun</span>
+		<br>[x,y,z] = sphere(100); 
+		<br>surf(50*x,500+50*y,400+50*z,... 
+		<br><span style="padding-left: 20px">'EdgeColor','none','FaceColor',[1 1 0]);</span> 
+		<br>&nbsp;<br>axis <b>off</b>;
+	</p>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_scene_1.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of naval scene |</p></td>
+		</tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><img src="gfx/graph_scene_2.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="800"><p class="image">| visualization of naval scene |</p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	
+	<h2 id="add-ones">Add-ones</h2>
+	<h3>3d model library</h3>
+	<table align="center" border="0" width="800">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center"><td><img src="gfx/3dmodels.png"></td></tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center"><td><p class="image">| 3d model examples |</p></td></tr>
+	</table>
+	<p>The library includes actually: multirole fighter model (f-16.mat), attack helicopter model (mi-24.mat), ballistic missile model (scud.mat), anti-aircraft missile model (missile.mat), and two launcher models (launcher-0.mat and launcher-90.mat) collected in 'flypath3d\models' directory. To display selected 3d model, e.g. multirole fighter, use the code as follows:</p>
+	<p class="code">model_show('f-16.mat');</p>
+	<p>Reference help for 3d model library functions can be obtained using Matlab® command:</p>
+	<p class="code">help model_import<br>help model_show</p>
+	<h3>3d model import & conversion example</h3>
+	<p>The <b>flypath3d</b> package supports 3d models collected in obj format files. Additional models can be obtained from obj format files created by popular 3d graphics and animation software, e.g. Blender or 3ds Max. Please note that the package supports only triangular mesh objects and it is important to make appropriate conversion of prepared model before its use in <b>flypath3d</b>. The 3d model can be imported and tested using the following exemplary code:</p>
+	<p class="code">
+		<span class="comment">% load 3d model from obj file and convert it to mat format</span>
+		<br>model_import('balloon.obj');
+		<br>&nbsp;<br><span class="comment">% simple model presentation</span>
+		<br>model_show('balloon.mat');
+		<br>&nbsp;<br><span class="comment">% display model with extra parameter set</span>
+		<br>model_show('balloon.mat',...
+		<br><span style="padding-left: 20px">'face',[.89 .0 .27],'edge',[.89 .0 .27],'alpha',.5,...</span>
+		<br><span style="padding-left: 20px">'window',[800 400],'color',[1 1 1],'view',[15 30],...</span>
+		<br><span style="padding-left: 20px">'animate','off','output','balloon.png','dpi',600);</span>
+		<br>&nbsp;<br><span class="comment">% animation example</span>
+		<br>model_show('balloon.mat',...
+        <br><span style="padding-left: 20px">'animate','on','output','animated_balloon.gif',...</span>
+        <br><span style="padding-left: 20px">'face',[.89 .0 .27],'edge','none',...</span>
+        <br><span style="padding-left: 20px">'window',[300 310]);</span>
+	</p>
+	<table align="center" border="0" width="600">
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="300"><img src="gfx/balloon_gray.png"></td>
+			<td width="300"><img src="gfx/balloon_red.png"></td>
+	    </tr>
+		<tr cellspacing="0" cellpadding="0" align="center" valign="center">
+		    <td width="300"><p class="image">| simple model presentation |</p></td>
+			<td width="300"><p class="image">| 3d model with extra parameter set |</p></td>
+		</tr>
+	</table>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	
+	<h2 id="requirements">Program availability and system requirements</h2>
+	<p>The <b>flypath3d</b> package is freely available for scientific and educational use. When using the package, please <a href="https://www.researchgate.net/profile/Witold_Buzantowicz/publication/308324771_Matlab_Script_for_3D_Visualization_of_Missile_and_Air_Target_Trajectories/links/57e0c51608aece48e9e203ef.pdf?origin=publication_list">cite the paper</a>.</p>
+	<p>The <b>flypath3d</b> package requires only the basic module of MathWorks™ Matlab® and an ordinary PC or notebook to use. All the scripts were tested with Matlab® R2014a under 32/64-bit Microsoft® Windows® 7 and 8.1 operating systems.</p>
+	<p>Supplementary data associated with given examples can be found in download section.</p>
+	<p class="right"><a href="#contents">| back to the top |</a></p>
+	
+  </td>
+</tr>
+</table>
+&nbsp;<br>&nbsp;
+<!-- END OF MAIN PAGE -->
+
+<!-- FOOTER -->
+<table class="footer" align="center" border="0" width="1000">
+<tr cellspacing="0" cellpadding="0" align="center" valign="top">
+  <td background="gfx/bottom.png" height="60">
+  <p class="footer">&#169; 2016 by Witold Bużantowicz | last updated: 2016-09-14</p>
+  </td>
+</tr>
+</table>
+<!-- END OF FOOTER -->
+</body>
+
+</html>

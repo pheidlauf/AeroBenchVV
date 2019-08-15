@@ -12,9 +12,11 @@
 
 %% Add all needed paths (if not manually added)
 close all; clear; clc;
-addpath(genpath('../F16_Model'));
-addpath(genpath('../F16_Sim'));
-addpath(genpath('../flypath3d'));
+addpath(genpath('F16_Model'));
+addpath(genpath('utils'));
+addpath(genpath('Runner'));
+addpath(genpath('Autopilot'));
+addpath(genpath('FlightController'));
 
 %% Set Initial Conditions
 powg = 9;                   % Power
@@ -71,8 +73,8 @@ plotOn = true;
 
 %% Save results
 % Save output to workspace
-save('SimResults.mat','output','passFail');
+save('../Results/SimResults.mat','output','passFail');
 
 % Generate Renderings using a modified version of flypath3d
-MakePicture;
-MakeAnimation;
+run ../Visualizers/MakePicture;
+run ../Visualizers/MakeAnimation;
