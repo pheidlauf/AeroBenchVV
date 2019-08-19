@@ -1,10 +1,10 @@
+# EXCLUDE
 *.gif
 *.png
 *.mat
 *.asp
 *.mp4
-!Visualizers/flypath3d/**
 
-# Ignore LQR Optimization
-OptControl/
-Graphics/
+# INCLUDE
+!Visualizers/flypath3d/**
+!Presentations/**
