@@ -165,9 +165,6 @@ margin(OLTF(4,1))
 figure(2);
 margin(OLTF(5,2))
 
-% Output results to .mat file
-save('lateralCtrlData.mat','K_lat','sys_cl_lat','xequil','uequil');
-
 % View Damping Ratio & Frequency of Poles
 damp(eig(sys_cl_lat.a))
 [Wn,zeta] = damp(eig(sys_cl_lat.a));
@@ -179,6 +176,9 @@ damp(eig(sys_cl_lat.a))
 % step(sys_cl_lat(:,:),10,opt)
 printmat(K_lat,'LQR Gains','aileron rudder',...
         'beta p r int_e_ps int_e_Ny_r');
+    
+% Output results to .mat file
+save('../../Results/lateralCtrlData.mat','K_lat','sys_cl_lat','xequil','uequil');
 
 %% Citations
 % Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson. 

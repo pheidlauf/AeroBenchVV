@@ -147,9 +147,11 @@ figure(2);
 opt = stepDataOptions('StepAmplitude',1);
 step(sys_cl_long,3,opt)
 
-save('longitudinalCtrlData.mat','K_long','sys_cl_long','xequil','uequil');
 printmat(K_long,'LQR Gains','elevator',...
     'alpha q int_e_Nz');
+
+% Output results to .mat file
+save('../../Results/longitudinalCtrlData.mat','K_long','sys_cl_long','xequil','uequil');
 
 %% Citations
 % Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson.

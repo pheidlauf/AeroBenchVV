@@ -229,9 +229,6 @@ margin(OLTF(3,3))
 figure(4);
 margin(OLTF(4,4))
 
-% Output results to .mat file
-save('combinedCtrlData.mat','K_full','sys_cl_full','xequil','uequil');
-
 % View Damping Ratio & Frequency of Poles
 damp(eig(sys_cl_full.a))
 [Wn,zeta] = damp(eig(sys_cl_full.a));
@@ -240,3 +237,14 @@ damp(eig(sys_cl_full.a))
 
 printmat(K_full,'LQR Gains','throttle elevator aileron rudder',...
         'V pow alpha beta P Q R int_e_V int_e_P int_e_Q int_e_R');
+    
+% Output results to .mat file
+save('../../Results/combinedCtrlData.mat','K_full','sys_cl_full','xequil','uequil');
+
+%% Citations
+% Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson. 
+% Aircraft control and simulation: dynamics, controls design, and 
+% autonomous systems. John Wiley & Sons, 2015.
+%
+% Liebst, Bradley S.,
+% AFIT 
