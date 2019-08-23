@@ -20,6 +20,7 @@ addpath(genpath('utils'));
 addpath(genpath('Runner'));
 addpath(genpath('Autopilot'));
 addpath(genpath('FlightController'));
+addpath(genpath('../Visualizers'));
 
 %% Set Initial Conditions
 close all; clear; clc;
@@ -58,8 +59,11 @@ plotOn = true;
 
 %% Save results
 % Save output to workspace
-save('../Results/SimResults.mat','output','passFail');
+data_output = fullfile(pwd,'../Results/SimResults.mat');
+image_output = fullfile(pwd,'../Results/output_picture');
+animation_output = fullfile(pwd,'../Results/output_animation.mp4');
 
-% Generate Renderings using a modified version of flypath3d
-run ../Visualizers/MakePicture;
-run ../Visualizers/MakeAnimation;
+% Generate outputs 
+save(data_output,'output','passFail');
+renderImage(data_output, image_output);
+renderAnimation(data_output, animation_output);
