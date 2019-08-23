@@ -9,9 +9,7 @@
 %    package_setup
 %
 
-clear all;
 close all;
-clc;
 
 % --- flypath.m ---
 filename = strcat(cd,'/flypath.m'); 
