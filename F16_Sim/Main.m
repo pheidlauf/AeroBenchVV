@@ -34,21 +34,6 @@ thetag = (-pi/2)*0.8;       % Pitch angle from nose level (rad)
 psig = -pi/4;               % Yaw angle from North (rad)     
 t_vec = 0:0.01:15;          % Time vector for simulation output
 
-% Initial Attitude (for trackToHeading)
-% altg = 500;
-% Vtg = 502;
-% phig = 0;
-% thetag = alphag;
-% psig = deg2rad(-135);       % Yaw angle;
-% t_vec = 0:0.01:30; 
-
-% Initial Attitude (for steadyLevelFlightHold)
-% phig = deg2rad(10);                 % Roll angle;
-% thetag = alphag - deg2rad(10);      % Pitch angle;
-% psig = deg2rad(-15);                % Yaw angle;
-% t_vec = 0:0.01:15;    
-
-
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
 [flightLimits,ctrlLimits,autopilot] = getDefaultSettings()
 ctrlLimits.ThrottleMax = 0.7;   % Limit to Mil power (no afterburner)

@@ -17,6 +17,7 @@ addpath(genpath('utils'));
 addpath(genpath('Runner'));
 addpath(genpath('Autopilot'));
 addpath(genpath('FlightController'));
+addpath(genpath('../Visualizers'));
 
 %% Set Initial Conditions
 close all; clear; clc;
@@ -33,21 +34,6 @@ phig = (pi/2)*0.5;          % Roll angle from wings level (rad)
 thetag = (-pi/2)*0.8;       % Pitch angle from nose level (rad)
 psig = -pi/4;               % Yaw angle from North (rad)     
 t_vec = 0:0.01:15;          % Time vector for simulation output
-
-% Initial Attitude (for turnToHeading)
-% altg = 500;
-% Vtg = 502;
-% phig = 0;
-% thetag = alphag;
-% psig = deg2rad(-135);       % Yaw angle;
-% t_vec = 0:0.01:30; 
-
-% Initial Attitude (for steadyLevelFlightHold)
-% phig = deg2rad(10);                 % Roll angle;
-% thetag = alphag - deg2rad(10);      % Pitch angle;
-% psig = deg2rad(-15);                % Yaw angle;
-% t_vec = 0:0.01:15;    
-
 
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
 [flightLimits,ctrlLimits,autopilot] = getDefaultSettings()
@@ -74,8 +60,11 @@ plotOn = true;
 
 %% Save results
 % Save output to workspace
-save('../Results/SimResults.mat','output','passFail');
+data_output = fullfile(pwd,'../Results/SimResults.mat');
+image_output = fullfile(pwd,'../Results/output_picture');
+animation_output = fullfile(pwd,'../Results/output_animation.mp4');
 
-% Generate Renderings using a modified version of flypath3d
-run ../Visualizers/MakePicture;
-run ../Visualizers/MakeAnimation;
+% Generate outputs 
+save(data_output,'output','passFail');
+renderImage(data_output, image_output);
+renderAnimation(data_output, animation_output);

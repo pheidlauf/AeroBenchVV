@@ -8,12 +8,8 @@
 % See also: NEW_OBJECT, FLYPATH
 
 % Enable flypath3d & initialize
-cd('../flypath3d');
-package_setup;
-cd('../F16_GCAS_V2');
 close all; clear; clc;
-
-
+addpath(genpath('../../Visualizers'));
 
 %  x_f16 States:
 %       x_f16(1)  = air speed, VT (300 ft/s to 900 ft/s)        (ft/s)
