@@ -1,14 +1,12 @@
 % Configures the settings for, runs, and saves an F-16 simulation.
 % Within this script, the user inputs all initial conditions and autopilot
-% instructions for a given simulation scenario. This is the only function
-% that must be to complete a simulation and save the results. The scripts
-% MakeAnimation and MakePicture can then be run and operate from the
-% results in the workspace.
+% instructions for a given simulation scenario. This is the only script
+% that must be run to complete a simulation and save the results.
 %
 % Copyright: GNU General Public License 2017
 % <a href="https://github.com/pheidlauf/AeroBenchVV">AeroBenchVV</a>
 %
-% See also: RUNF16SIM, GETDEFAULTSETTINGS, MAKEANIMATION, MAKEPICTURE,
+% See also: RUNF16SIM, GETDEFAULTSETTINGS, RENDERANIMATION, RENDERIMAGE,
 
 %% Add all needed paths (if not manually added)
 close all; clear; clc;
