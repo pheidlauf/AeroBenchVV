@@ -3,6 +3,10 @@
 ## UPDATE:
 The original version of this project was marked as [release v1.0.0](https://github.com/pheidlauf/AeroBenchVV/releases/tag/v1.0.0). There are now improvements (and potentially breaking changes) from the original version.
 
+# Citation
+
+For citation purposes, please use: "Verification Challenges in F-16 Ground Collision Avoidance and Other Automated Maneuvers", P. Heidlauf, A. Collins, M. Bolender, S. Bak, 5th International Workshop on Applied Verification for Continuous and Hybrid Systems (ARCH 2018)
+
 # AeroBenchVV Overview
 
 This project contains a set of benchmark models and controllers that test automated aircraft maneuvers by performing simulations. The hope is to provide a benchmark to motivate better verification and analysis methods, working beyond models based on Dubin's car dynamics, towards the sorts of models used in aerospace engineering. Compared to actual aerospace models used in practice, however, these models are still very simple. Roughly speaking, the dynamics are nonlinear, have about 10-20 dimensions (continuous state variables), and hybrid in the sense of discontinuous ODEs, but not with jumps in the state. The dynamics are given entirely in human-readable matlab .m code, without the need for additional Matlab toolboxes. Ode45 is used to simulate the system, pass/fail specifications are checked against the simulated maneuver, and a plot (or animation) of the resultant flight path can be generated.
@@ -60,7 +64,9 @@ A python implementation of the same code library is currently being developed. I
 
 ## Citations
 
-If you plan on presenting or publishing work done on this benchmark, please contact us at peter.heidlauf.1@us.af.mil for the upcoming citation information. We are currently working on a paper detailing this benchmark.
+For citation purposes, please use: "Verification Challenges in F-16 Ground Collision Avoidance and Other Automated Maneuvers", P. Heidlauf, A. Collins, M. Bolender, S. Bak, 5th International Workshop on Applied Verification for Continuous and Hybrid Systems (ARCH 2018)
+
+Other useful references:
 
 [1] Stevens, Brian L., Frank L. Lewis, and Eric N. Johnson. Aircraft control and simulation: dynamics, controls design, and autonomous systems. John Wiley & Sons, 2015.  
 
