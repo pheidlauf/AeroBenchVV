@@ -8,7 +8,7 @@ The original version of this project was marked as [release v1.0.0](https://gith
 - Open Matlab and add src/main and subfolders to the Matlab PATH
 - Set src/main as the current working directory.
 - Run the SimConfig.m script
-- Run src/main/Simulink/AeroBenchSim_2019a.slx or Run src/main/Simulink/AeroBenchSim_2019a.slx
+- Run src/main/Simulink/AeroBenchSim_2019a.slx or Run src/main/Simulink/AeroBenchSim_2017a.slx
 - Process the output by running the graphOutput.m or handleSimResults.m script
 
 # Citation

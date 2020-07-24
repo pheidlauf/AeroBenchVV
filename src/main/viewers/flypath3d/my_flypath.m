@@ -470,7 +470,11 @@ for i = 1:pStep:maxLength
             frame = getframe(fig);
             if i == 1
                 % Start video object
-                v = VideoWriter(pOutput,'MPEG-4');
+                % if this fails, use VideoWriter.getProfiles() to get list
+                % of acceptable profiles for your system
+                %v = VideoWriter(pOutput,'MPEG-4'); % Windows
+                v = VideoWriter(pOutput);
+                
                 v.FrameRate = 30; % Use this to set speed of animation
                 v.Quality = 100;
                 open(v);

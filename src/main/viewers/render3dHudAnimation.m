@@ -281,7 +281,9 @@ alt = x_f16(12);    % Altitude (ft)
 
 % Direction Cosine Matrices
 % Note: F-16 coordinate frame is NRD: Nose-Right-Down
-dcm_f16_NED = angle2dcm( psi, theta, phi); % N-E-D frame to F-16 frame
+%dcm_f16_NED = angle2dcm( psi, theta, phi); % N-E-D frame to F-16 frame
+dcm_f16_NED = attitude2dcm( psi, theta, phi); % N-E-D frame to F-16 frame
+
 dcm_NED_f16 =  dcm_f16_NED'; % F-16 frame to N-E-D frame
 
 % F-16 unit vector out the nose (x1) in F-16 frame [NRD]
