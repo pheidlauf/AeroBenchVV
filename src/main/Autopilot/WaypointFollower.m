@@ -281,7 +281,7 @@ classdef WaypointFollower < Pilot
             
             % Gains for roll tracking
             WF_config.K_prop_phi = 0.5;
-            WF_config.K_der_phi = 0.5;
+            WF_config.K_der_phi = 0.9; % old: 0.5
             
             % Gains for Nz
             WF_config.max_Nz_cmd = 4;
