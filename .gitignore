@@ -4,6 +4,7 @@
 *.mat
 *.asp
 *.mp4
+*slprj*
 
 # INCLUDE
 !Visualizers/flypath3d/**
