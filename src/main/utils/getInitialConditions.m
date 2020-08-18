@@ -81,7 +81,7 @@ switch scenario
         waypoints = [...
             -5000, -7500, altg;
             -15000, -7500, altg;
-            -20000, -2000, altg+1000;
+            -20000, 0, altg+500;
             ];
 
     otherwise
