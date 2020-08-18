@@ -1,7 +1,9 @@
-function [ initialState,x_f16_0,waypoints] = getInitialConditions(scenario)
+function [ initialState, x_f16_0, waypoints, t_end] = getInitialConditions(scenario)
 %Returns an F-16 initialState given a scenario specification
 
 %% Common settings between all scenarios
+t_end = 120;
+
 powg = 9;                   % Power
 % Default alpha & beta
 alphag = deg2rad(2.1215);   % Trim Angle of Attack (rad)
@@ -21,9 +23,10 @@ waypoints = [...
 
 switch scenario
     case 'GCAS'
-        altg = 1200;
+        t_end = 5;
+        altg = 1000;
         Vtg = 540;
-        phig = -pi/3;          % Roll angle from wings level (rad)
+        phig = -pi/8;          % Roll angle from wings level (rad)
         thetag = (-pi/2)*0.3;       % Pitch angle from nose level (rad)
         psig = 0;               % Yaw angle from North (rad)
         
@@ -31,7 +34,7 @@ switch scenario
             0, 20000, 1500;
             ];
     case 'GCAS_inverted'
-        altg = 1100;
+        altg = 1000;
         Vtg = 540;
         phig = -pi;          % Roll angle from wings level (rad)
         thetag = (-pi/2)*0.01;       % Pitch angle from nose level (rad)
