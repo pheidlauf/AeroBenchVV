@@ -36,7 +36,9 @@
 %       u(6) = roll rate commanded  (deg/s)
 %       u(7) = Ny+r commanded       (g's)  
 
-% to init sim and graph, run: SimConfig; sim('AeroBenchSim_2019a'); graphOutput;
+%%%%%%%%%%%%
+% to init sim and graph, run: 
+% SimConfig; sim('AeroBenchSim_2019a'); graphOutput;
 
 % Note: sim_path is set by the initFcn of AeroBenchSim
 aerobench_path = addAeroBenchPaths(false);

@@ -7,6 +7,7 @@
 *slprj*
 *~
 *.slxc
+*.autosave
 
 # INCLUDE
 !Visualizers/flypath3d/**
