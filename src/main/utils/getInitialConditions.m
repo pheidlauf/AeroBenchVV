@@ -8,24 +8,38 @@ alphag = deg2rad(2.1215);   % Trim Angle of Attack (rad)
 betag = 0;                  % Side slip angle (rad)
 
 % Select target waypoints
-n_pt = 3000;
 e_pt = 3000;
+n_pt = 3000;
 h_pt = 2000;
 
 waypoints = [...
-    n_pt, e_pt, h_pt;
-    n_pt+2000, e_pt+ 5000, h_pt-500;
-    n_pt+1000, e_pt+10000, h_pt-750;
-    n_pt- 500, e_pt+15000, h_pt-1250;
+    e_pt, n_pt, h_pt;
+    e_pt+2000, n_pt+ 5000, h_pt-500;
+    e_pt+1000, n_pt+10000, h_pt-750;
+    e_pt- 500, n_pt+15000, h_pt-1250;
     ];
 
 switch scenario
     case 'GCAS'
-        altg = 4000;
+        altg = 1200;
         Vtg = 540;
-        phig = (pi/2)*0.5;          % Roll angle from wings level (rad)
-        thetag = (-pi/2)*0.8;       % Pitch angle from nose level (rad)
-        psig = -pi/4;               % Yaw angle from North (rad)
+        phig = 0;          % Roll angle from wings level (rad)
+        thetag = (-pi/2)*0.3;       % Pitch angle from nose level (rad)
+        psig = 0;               % Yaw angle from North (rad)
+        
+        waypoints = [...
+            0, 10000, 1500;
+            ];
+    case 'GCAS_inverted'
+        altg = 1100;
+        Vtg = 540;
+        phig = -pi;          % Roll angle from wings level (rad)
+        thetag = (-pi/2)*0.01;       % Pitch angle from nose level (rad)
+        psig = 0;               % Yaw angle from North (rad)
+        
+        waypoints = [...
+            0, 10000, 1500;
+            ];    
     case 'default'
         altg = 4000;
         Vtg = 540;
@@ -51,15 +65,15 @@ switch scenario
         thetag = 0;                 % Pitch angle from nose level (rad)
         psig = pi/4;                % Yaw angle from North (rad)
         % Select target waypoints
-        n_pt = 3000;
         e_pt = 3000;
+        n_pt = 3000;
         h_pt = 2000;
         
         waypoints = [...
-            n_pt, e_pt, h_pt;
-            n_pt+2000, e_pt+ 5000, h_pt-500;
-            n_pt+1000, e_pt+10000, h_pt-750;
-            n_pt- 500, e_pt+15000, h_pt-1250;
+            e_pt, n_pt, h_pt;
+            e_pt+2000, n_pt+ 5000, h_pt-500;
+            e_pt+1000, n_pt+10000, h_pt-750;
+            e_pt- 500, n_pt+15000, h_pt-1250;
             ];
 
     case 'u_turn'

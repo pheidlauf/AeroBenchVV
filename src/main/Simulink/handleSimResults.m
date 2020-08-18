@@ -35,8 +35,8 @@ plotWaypointCmds(t_out, x_f16_out, psi_cmd_out, ...
     WF_mode_out, WF_iter_out, waypoints)
 
 % save 3d animation
-fprintf("saving 3d HUD animiation in results folder\n")
-render3dHudAnimation(hud_output, t_out, x_f16_out, u_ol_out, ...
-    waypoints, WF_config, GCAS_config)
+%fprintf("saving 3d HUD animiation in results folder\n")
+%render3dHudAnimation(hud_output, t_out, x_f16_out, u_ol_out, ...
+%    waypoints, WF_config, GCAS_config)
 
 disp('Post Processing Complete');

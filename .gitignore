@@ -5,6 +5,8 @@
 *.asp
 *.mp4
 *slprj*
+*~
+*.slxc
 
 # INCLUDE
 !Visualizers/flypath3d/**

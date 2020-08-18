@@ -46,7 +46,7 @@ t_end = 120;
 warnOn = false;
 
 %% Set Initial Conditions
-scenario = 'u_turn';
+scenario = 'default';
 [ initialState, x_f16_0 ] = getInitialConditions(scenario);
 
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
