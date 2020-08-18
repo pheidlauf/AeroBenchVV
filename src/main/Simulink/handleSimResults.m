@@ -17,9 +17,9 @@ save(data_output,'x_f16_out','t_out');
 
 
 % save mp4 / avi animation
-fprintf("saving mp4 / avi animation in results folder\n")
-renderSimpleAnimation(animation_output, t_out, transpose(x_f16_out), ...
-    flightLimits);
+%fprintf("saving mp4 / avi animation in results folder\n")
+%renderSimpleAnimation(animation_output, t_out, transpose(x_f16_out), ...
+%    flightLimits);
 
 % save image
 fprintf("saving image in results folder\n")

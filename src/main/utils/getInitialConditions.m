@@ -51,13 +51,7 @@ switch scenario
         Vtg = 540;
         phig = 0;                   % Roll angle from wings level (rad)
         thetag = 0;                 % Pitch angle from nose level (rad)
-        psig = pi/4;                % Yaw angle from North (rad)
-    case 'optimizer'
-        altg = 1000;
-        Vtg = 540;
-        phig = 0;                   % Roll angle from wings level (rad)
-        thetag = 0;                 % Pitch angle from nose level (rad)
-        psig = 0;                   % Yaw angle from North (rad)    
+        psig = pi/4;                % Yaw angle from North (rad)  
     case 'waypoint_trigger_GCAS'
         altg = 1500;
         Vtg = 540;
