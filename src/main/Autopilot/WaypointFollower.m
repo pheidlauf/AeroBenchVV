@@ -112,6 +112,7 @@ classdef WaypointFollower < Pilot
         % For matlab.System class
         function [u_ol_ref, psi_cmd] = stepImpl(self, ...
                 x_f16, waypoint, WF_mode)
+            
             [u_ol_ref, psi_cmd] = self.smartTrackToPoint( ...
                 x_f16, WF_mode, waypoint);
             u_ol_ref = u_ol_ref';
@@ -247,6 +248,7 @@ classdef WaypointFollower < Pilot
             % slant_range = total range to tgt (ft)
             
             [e_pos, n_pos, alt] = WaypointFollower.get_f16_position(x_f16);
+            
             
             delta = waypoint - [e_pos, n_pos, alt];
             [~, inclination, slant_range] = cart2sph(...

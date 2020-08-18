@@ -10,7 +10,7 @@ betag = 0;                  % Side slip angle (rad)
 % Select target waypoints
 e_pt = 3000;
 n_pt = 3000;
-h_pt = 2000;
+h_pt = 4000;
 
 waypoints = [...
     e_pt, n_pt, h_pt;
@@ -23,12 +23,12 @@ switch scenario
     case 'GCAS'
         altg = 1200;
         Vtg = 540;
-        phig = 0;          % Roll angle from wings level (rad)
+        phig = -pi/3;          % Roll angle from wings level (rad)
         thetag = (-pi/2)*0.3;       % Pitch angle from nose level (rad)
         psig = 0;               % Yaw angle from North (rad)
         
         waypoints = [...
-            0, 10000, 1500;
+            0, 20000, 1500;
             ];
     case 'GCAS_inverted'
         altg = 1100;
@@ -38,7 +38,7 @@ switch scenario
         psig = 0;               % Yaw angle from North (rad)
         
         waypoints = [...
-            0, 10000, 1500;
+            0, 20000, 1500;
             ];    
     case 'default'
         altg = 4000;
