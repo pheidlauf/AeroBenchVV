@@ -18,7 +18,7 @@ GCAS_starts_on = 0;
 
 waypoints = [...
     e_pt, n_pt, h_pt;
-    e_pt+2000, n_pt+ 5000, h_pt-200;
+    e_pt+2000, n_pt+ 5000, h_pt-100;
     e_pt-2000, n_pt+15000, h_pt-250;
     e_pt- 500, n_pt+25000, h_pt;
     ];
