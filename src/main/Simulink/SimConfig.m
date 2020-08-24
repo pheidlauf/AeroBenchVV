@@ -49,7 +49,7 @@ aerobench_path = addAeroBenchPaths(false);
 warnOn = false;
 
 %% Set Initial Conditions
-scenario = 'waypoint';
+scenario = 'u_turn';
 [initialState, x_f16_0, waypoints, t_end, GCAS_starts_on] = getInitialConditions(scenario);
 
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
