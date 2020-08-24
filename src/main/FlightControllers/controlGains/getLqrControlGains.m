@@ -1,4 +1,4 @@
-function [K_lqr, K_lat, K_lon] = getLqrControlGains(gainSet)
+function [K_lqr, K_lat, K_long] = getLqrControlGains(gainSet)
 
 if nargin == 0
     disp('Default gainSet used: optimized')

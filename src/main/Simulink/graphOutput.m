@@ -77,6 +77,27 @@ if size(t_out, 1) > 0
     plot(t_out, WF_iter_out, 'b--');  
     legend('Waypoiny Index', ...
         'location','SouthEast')
+    
+    %%%%%%%%%%%%%%%%%
+    figure(4);
+    clf
+    hold on;
+    grid on;
+    title('Outer Loop Controls');
+    xlabel('Time (sec)');
+    ylabel('Autopilot (deg & percent)');
+    hold on;
+    plot(t_out, u_ol_out(:,1),'r');
+    plot(t_out, u_ol_ref_out(:,1),'r--');
+    plot(t_out, u_ol_out(:,2),'g');
+    plot(t_out, u_ol_ref_out(:,2),'g--');
+    plot(t_out, u_ol_out(:,3),'b');
+    plot(t_out, u_ol_ref_out(:,3),'b--');
+    plot(t_out, u_ol_out(:,4),'c');
+
+    legend('N_z', 'N_{z,ref}', 'p_s', 'p_{s,ref}', 'N_{yr}',...
+        'N_{yr,ref}', 'Throttle',...
+        'location', 'NorthWest')
 
 else
     disp('No Data from simulation run?');

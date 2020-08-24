@@ -8,6 +8,7 @@ classdef WaypointFollower < Pilot
         K_prop_psi
         K_der_psi
         K_prop_phi
+        maxBankDeg
         K_der_phi
         K_vt
         airspeed
@@ -37,6 +38,7 @@ classdef WaypointFollower < Pilot
             self.K_der_psi = WF_config.K_der_psi;
             self.K_prop_phi = WF_config.K_prop_phi;
             self.K_der_phi = WF_config.K_der_phi;
+            self.maxBankDeg = WF_config.maxBankDeg;
             self.max_Nz_cmd = WF_config.max_Nz_cmd;
             self.u_ol_default = WF_config.u_ol_default;
             
@@ -218,7 +220,8 @@ classdef WaypointFollower < Pilot
             phi_cmd = (psi_err)*self.K_prop_psi - r*self.K_der_psi;
             
             % Bound to acceptable bank angles:
-            maxBankRad = deg2rad(60);
+            maxBankRad = deg2rad(self.maxBankDeg);
+            
             phi_cmd = min(max(phi_cmd,-maxBankRad),maxBankRad);
         end
     end
@@ -282,8 +285,10 @@ classdef WaypointFollower < Pilot
             WF_config.K_der_psi = 0.5;
             
             % Gains for roll tracking
-            WF_config.K_prop_phi = 0.5;
-            WF_config.K_der_phi = 0.9; % old: 0.5
+            WF_config.K_prop_phi = 0.75;
+            WF_config.K_der_phi = 0.5;
+            WF_config.maxBankDeg = 65; % maximum bank anlge setpoint
+            % v2 was 0.5, 0.9
             
             % Gains for Nz
             WF_config.max_Nz_cmd = 4;

@@ -49,8 +49,8 @@ aerobench_path = addAeroBenchPaths(false);
 warnOn = false;
 
 %% Set Initial Conditions
-scenario = 'u_turn';
-[initialState, x_f16_0, waypoints, t_end] = getInitialConditions(scenario);
+scenario = 'waypoint';
+[initialState, x_f16_0, waypoints, t_end, GCAS_starts_on] = getInitialConditions(scenario);
 
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
 % [flightLimits,ctrlLimits,~] = getDefaultSettings();
@@ -67,7 +67,10 @@ simF16 = F16(flightLimits, ctrlLimits);
 [xequil,uequil] = getDefaultEquilibrium();
 
 % Combine decoupled controllers
-K_lqr = getLqrControlGains('old');
+gain_str = 'old'; % old gains are optimized for control response
+v2_integrators = 0;
+
+K_lqr = getLqrControlGains(gain_str);
 
 %% Set GCAS configuration
 GCAS_config = GCAS.get_default_GCAS_config();

@@ -1,4 +1,4 @@
-function [x_f16_dot, u_ol_actual] = subf16_morelli(x,u,xcg)
+function [x_f16_dot, u_ol_actual, v2_integrators] = subf16_morelli(x,u,x_f16_delta, v2_integrators)
 %
 %  xd = subf16(x,u)
 %
@@ -31,10 +31,9 @@ function [x_f16_dot, u_ol_actual] = subf16_morelli(x,u,xcg)
 
 
 %% Get F-16 state derivatives
-% Set c.g. location to nominal if not provided
-if(nargin==2)
-    xcg = 0.35;
-end
+% Set c.g. location
+xcg = 0.35;
+
 
 % Extract inputs for readability
 thtlc=u(1);
@@ -145,8 +144,18 @@ ay=ay+xa*x_f16_dot(9);           % moves side accel in front of c.g.
 % For extraction of pilot-controlled states
 Nz = (-az/g) - 1;       % Zeroed at 1 g, positive g = pulling up
 
-Ny_r = ay/g + x_f16_dot(9);    % Side force + yaw rate
-ps = x_f16_dot(7)*cos(x_f16_dot(2)) + x_f16_dot(9)*sin(x_f16_dot(2)); % ps= p*cos(alpha) + r*sin(alpha)
+if (v2_integrators)
+    ps = x_f16_dot(7)*cos(x_f16_dot(2)) + x_f16_dot(9)*sin(x_f16_dot(2)); % ps= p*cos(alpha) + r*sin(alpha)
+    Ny_r = ay/g + x_f16_dot(9);    % Side force + yaw rate
+else
+    ps = x_f16_delta(7)*cos(x_f16_delta(2)) + x_f16_delta(9)*sin(x_f16_delta(2));
+    Ny_r = ay/g + x_f16_delta(9);
+end
+
+%fprintf("\nx_f16_dot(2) = %f\n", x_f16_dot(2));
+%fprintf("x_f16_dot(7) = %f\n", x_f16_dot(7));
+%fprintf("x_f16_dot(9) = %f\n", x_f16_dot(9));
+%fprintf("ps: %f\n", ps);
 
 u_ol_actual = [Nz; ps; Ny_r; thtlc];
 
