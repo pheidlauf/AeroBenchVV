@@ -36,18 +36,21 @@
 %       u(6) = roll rate commanded  (deg/s)
 %       u(7) = Ny+r commanded       (g's)  
 
+%%%%%%%%%%%%
+% to init sim and graph, run: 
+% SimConfig; sim('AeroBenchSim_2019a'); graphOutput;
+
 % Note: sim_path is set by the initFcn of AeroBenchSim
 aerobench_path = addAeroBenchPaths(false);
 
 %% INPUTS HERE:
-t_end = 120;
 
 %% Toggles
 warnOn = false;
 
 %% Set Initial Conditions
 scenario = 'u_turn';
-[ initialState, x_f16_0 ] = getInitialConditions(scenario);
+[initialState, x_f16_0, waypoints, t_end, GCAS_starts_on] = getInitialConditions(scenario);
 
 %% Set Flight & Ctrl Limits (for pass-fail conditions)
 % [flightLimits,ctrlLimits,~] = getDefaultSettings();
@@ -64,26 +67,16 @@ simF16 = F16(flightLimits, ctrlLimits);
 [xequil,uequil] = getDefaultEquilibrium();
 
 % Combine decoupled controllers
-K_lqr = getLqrControlGains('old');
+gain_str = 'old'; % old gains are optimized for control response
+v2_integrators = 0;
+
+K_lqr = getLqrControlGains(gain_str);
 
 %% Set GCAS configuration
 GCAS_config = GCAS.get_default_GCAS_config();
 
 %% Set Waypoint Following configuration
 WF_config = WaypointFollower.get_default_WF_config();
-
-% Select target waypoints
-% n_pt = 3000;
-% e_pt = 3000;
-% h_pt = 2000;
-% 
-% waypoints = [...
-%     n_pt, e_pt, h_pt;
-%     n_pt+2000, e_pt+ 5000, h_pt-500;
-%     n_pt+1000, e_pt+10000, h_pt-750;
-%     n_pt- 500, e_pt+15000, h_pt-1250;
-%     ];
-[ ~,~,waypoints] = getInitialConditions(scenario);
 
 %% GENERIC SIM CONFIG
 SIM_config.auto_stop = true;    % Causes sim to end after waypoint nav

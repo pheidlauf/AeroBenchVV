@@ -8,10 +8,12 @@ classdef WaypointFollower < Pilot
         K_prop_psi
         K_der_psi
         K_prop_phi
+        max_bank_deg
         K_der_phi
         K_vt
         airspeed
         max_Nz_cmd
+        min_Nz_cmd
         u_ol_default
     end
     
@@ -37,7 +39,9 @@ classdef WaypointFollower < Pilot
             self.K_der_psi = WF_config.K_der_psi;
             self.K_prop_phi = WF_config.K_prop_phi;
             self.K_der_phi = WF_config.K_der_phi;
+            self.max_bank_deg = WF_config.max_bank_deg;
             self.max_Nz_cmd = WF_config.max_Nz_cmd;
+            self.min_Nz_cmd = WF_config.min_Nz_cmd;
             self.u_ol_default = WF_config.u_ol_default;
             
         end
@@ -47,29 +51,6 @@ classdef WaypointFollower < Pilot
             %the waypoint following autopilot.
             error('AEROBENCH:WaypointFollower:NotImplememented', ...
                 'getCmds is not yet implemented');
-        end
-        
-        function [u_ol] = trackToPoint(self, x_f16, WF_mode, waypoint)
-            %GETCMDS returns autopilot's calculated pilot inputs
-            % u_ol = [Nz; ps; Ny_r; throttle]
-            
-            if WF_mode == 0
-                [psi_cmd] = WaypointFollower.getWaypointData(...
-                    x_f16, waypoint);
-                
-                % Get desired roll angle given desired heading
-                Nz_alt = self.trackAltitudeWingsLevel(x_f16, waypoint(3));
-                Nz_roll = self.getNzForLevelTurnOL(x_f16);
-                Nz_cmd = Nz_alt + Nz_roll;
-                phi_cmd = self.getPhiToTrackHeading(x_f16,psi_cmd);
-                ps_cmd = self.trackRollAngle(x_f16,phi_cmd);
-                throttle = self.trackAirspeed(x_f16, self.airspeed);
-                
-                % Create reference vector
-                u_ol = [Nz_cmd; ps_cmd; 0; throttle];
-            else
-                u_ol = self.u_ol_default;
-            end
         end
         
         function [u_ol, psi_cmd] = smartTrackToPoint(self, ...
@@ -96,6 +77,9 @@ classdef WaypointFollower < Pilot
                 Nz_cmd = self.trackAltitudeWingsLevel(x_f16, waypoint(3));
                 psi_cmd = NaN;
             end
+            
+            Nz_cmd = max(self.min_Nz_cmd, min(self.max_Nz_cmd, Nz_cmd));
+            
             % Create reference vector
             u_ol = [Nz_cmd; ps_cmd; 0; throttle];
         end
@@ -112,6 +96,7 @@ classdef WaypointFollower < Pilot
         % For matlab.System class
         function [u_ol_ref, psi_cmd] = stepImpl(self, ...
                 x_f16, waypoint, WF_mode)
+            
             [u_ol_ref, psi_cmd] = self.smartTrackToPoint( ...
                 x_f16, WF_mode, waypoint);
             u_ol_ref = u_ol_ref';
@@ -130,7 +115,7 @@ classdef WaypointFollower < Pilot
             if h_error > 0
                 % Ascend wings level or banked
                 Nz = Nz_alt + Nz_roll;
-            elseif phi < deg2rad(15)
+            elseif abs(phi) < deg2rad(15)
                 % Descend wings (close enough to) level
                 Nz = Nz_alt + Nz_roll;
             else
@@ -186,8 +171,6 @@ classdef WaypointFollower < Pilot
                 Nz = 0;
             end
             
-            Nz = min(self.max_Nz_cmd, Nz);
-            
         end
         
         function [ps] = trackRollAngle(self, x_f16, phi_cmd)
@@ -213,11 +196,11 @@ classdef WaypointFollower < Pilot
             % Calculate PD control
             psi_err = wrapToPi(psi_cmd - psi);
             
-            
             phi_cmd = (psi_err)*self.K_prop_psi - r*self.K_der_psi;
             
             % Bound to acceptable bank angles:
-            maxBankRad = deg2rad(60);
+            maxBankRad = deg2rad(self.max_bank_deg);
+            
             phi_cmd = min(max(phi_cmd,-maxBankRad),maxBankRad);
         end
     end
@@ -247,6 +230,7 @@ classdef WaypointFollower < Pilot
             % slant_range = total range to tgt (ft)
             
             [e_pos, n_pos, alt] = WaypointFollower.get_f16_position(x_f16);
+            
             
             delta = waypoint - [e_pos, n_pos, alt];
             [~, inclination, slant_range] = cart2sph(...
@@ -280,16 +264,17 @@ classdef WaypointFollower < Pilot
             WF_config.K_der_psi = 0.5;
             
             % Gains for roll tracking
-            WF_config.K_prop_phi = 0.5;
-            WF_config.K_der_phi = 0.9; % old: 0.5
+            WF_config.K_prop_phi = 0.75;
+            WF_config.K_der_phi = 0.5;
+            WF_config.max_bank_deg = 65; % maximum bank angle setpoint
+            % v2 was 0.5, 0.9
             
             % Gains for Nz
             WF_config.max_Nz_cmd = 4;
+            WF_config.min_Nz_cmd = -1;
             
             % Thresholds for waypoint completion
-            WF_config.WP_RANGE_THRESHOLD = 250;
-            WF_config.WP_VERT_RANGE_THRESHOLD = 50;
-            WF_config.WP_HORIZ_RANGE_THRESHOLD = 250;
+            WF_config.WP_RANGE_THRESHOLD = 250; % slant range
             
             % Default control when not waypoint tracking
             WF_config.u_ol_default = [0; 0; 0; 0.3];

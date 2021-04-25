@@ -42,12 +42,13 @@ classdef GCAS < Pilot
             
             % Set Proportional-Derivative Control Gains
             self.K_prop = 4;
-            self.K_der = self.K_prop*0.5;
+            self.K_der = 2;
         end
         
         function [u_ol] = getCmds(self, x_f16, GCAS_mode)
             %GETCMDS returns GCAS's calculated pilot inputs
             % u_ol = [Nz; ps; Ny_r; throttle]
+            
             if(nargin < 3)
                 GCAS_mode = self.autoselectGCAS_mode(x_f16);
                 self.GCAS_mode = GCAS_mode;
@@ -64,6 +65,8 @@ classdef GCAS < Pilot
                     error('AEROBENCH:GCAS:mode',...
                         'Unknown GCAS_mode: %d', GCAS_mode);
             end
+            
+            %fprintf("GCAS_mode = %f, ul(2) = %f\n", GCAS_mode, u_ol(2));
         end
         
         function newMode = autoselectGCAS_mode(self, x_f16)
@@ -122,11 +125,11 @@ classdef GCAS < Pilot
             
             [phi, p, ~, ~] = GCAS.extractDesiredStates(x_f16);
             
-            % Determine which angle is "level" (0, 180, 360, 720, etc)
-            radsFromWingsLevel = round(phi/pi);
+            % Determine which angle is "level" (0, 360, 720, etc)
+            radsFromWingsLevel = round(phi/(2*pi));
             
             % PD Control until phi == pi*radsFromWingsLevel
-            ps = -(phi - pi*radsFromWingsLevel)*self.K_prop - p*self.K_der;
+            ps = -(phi - (2*pi)*radsFromWingsLevel)*self.K_prop - p*self.K_der;
             
             % Build commands to roll wings level
             u_ol = GCAS.getDefaultCmds();
@@ -170,7 +173,7 @@ classdef GCAS < Pilot
         function noseIsHighEnough  = isNoseHighEnough(x_f16, GCAS_config)
             [~, ~, theta, alpha] = GCAS.extractDesiredStates(x_f16);
             
-            % Determine which angle is "level" (0, 180, 360, 720, etc)
+            % Determine which angle is "level" (0, 360, 720, etc)
             radsFromNoseLevel = round((theta-alpha)/(2*pi));
             
             % Evaluate boolean
@@ -188,11 +191,11 @@ classdef GCAS < Pilot
         function wingsAreLevel  = areWingsLevel(x_f16, GCAS_config)
             [phi, ~, ~, ~] = GCAS.extractDesiredStates(x_f16);
             
-            % Determine which angle is "level" (0, 180, 360, 720, etc)
-            radsFromWingsLevel = round(phi/pi);
+            % Determine which angle is "level" (0, 360, 720, etc)
+            radsFromWingsLevel = round(phi/(2*pi));
             
             % Evaluate boolean
-            wingsAreLevel = abs(phi-pi*radsFromWingsLevel) < GCAS_config.eps_phi;
+            wingsAreLevel = abs(phi-(2*pi)*radsFromWingsLevel) < GCAS_config.eps_phi;
         end
         
         function aboveFlightDeck = isAboveFlightDeck(x_f16, GCAS_config)
@@ -203,8 +206,6 @@ classdef GCAS < Pilot
             GCAS_config.eps_phi = deg2rad(5);       % Max abs roll angle before pull
             GCAS_config.eps_p = deg2rad(10);        % Max abs roll rate before pull
             GCAS_config.path_goal = deg2rad(0);     % Min path angle before completion
-            GCAS_config.K_prop = 4;                 % Proportional control gain
-            GCAS_config.K_der = 3;                  % Derivative control gain
             GCAS_config.FLIGHT_DECK = 1000;         % Altitude at which GCAS activates
             GCAS_config.min_pull_time = 2;          % Min duration of pull up
         end

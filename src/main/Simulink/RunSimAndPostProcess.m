@@ -5,7 +5,7 @@ close all; clearvars; clc;
 SimConfig;
 
 % Update Simulink diagram to account for code changes
-sys = 'AeroBenchSim_2017b';
+sys = 'AeroBenchSim_2019a';
 load_system(sys)
 set_param(sys, 'SimulationCommand', 'update')
     
@@ -16,4 +16,5 @@ catch exception
 end
 
 % Plot results
-handleSimResults;
+%handleSimResults;
+graphOutput

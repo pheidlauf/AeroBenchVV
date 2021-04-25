@@ -17,7 +17,7 @@ pathsToAdd = {aerobench_path;
     src_path;
     fullfile(src_path,'main');
     fullfile(src_path,'main','utils');
-    fullfile(src_path,'main','Runners');
+    %fullfile(src_path,'main','Runners');
     fullfile(src_path,'main','FlightControllers');
     fullfile(src_path,'main','Autopilot');
     fullfile(src_path,'main','viewers');

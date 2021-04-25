@@ -39,6 +39,65 @@ if size(t_out, 1) > 0
     legend('Roll \phi',' Pitch \theta','Yaw \psi',...
         'Roll Rate p','Pitch Rate q','Yaw rate r',...
         'location','SouthEast')
+    
+    % Altitude
+    figure(3);
+    clf
+    subplot(3,1,1)
+    hold on;
+    grid on;
+    title('Altitude History');
+    xlabel('Time (sec)');
+    ylabel('Altitude (ft)');
+    hold on;
+    plot(t_out, x_f16_out(:,12), 'b--');     % alt
+    legend('Alt (ft)', ...
+        'location','SouthEast')
+    
+    % GCAS Mode
+    subplot(3,1,2)
+    hold on;
+    grid on;
+    title('GCAS Mode History');
+    xlabel('Time (sec)');
+    ylabel('GCAS Mode');
+    hold on;
+    plot(t_out, GCAS_mode_out, 'b--');
+    legend('GCAS Mode', ...
+        'location','SouthEast')
+    
+    % Waypoint Index
+    subplot(3,1,3)
+    hold on;
+    grid on;
+    title('Waypoint History');
+    xlabel('Time (sec)');
+    ylabel('Waypoint Index');
+    hold on;
+    plot(t_out, WF_iter_out, 'b--');  
+    legend('Waypoiny Index', ...
+        'location','SouthEast')
+    
+    %%%%%%%%%%%%%%%%%
+    figure(4);
+    clf
+    hold on;
+    grid on;
+    title('Outer Loop Controls');
+    xlabel('Time (sec)');
+    ylabel('Autopilot (deg & percent)');
+    hold on;
+    plot(t_out, u_ol_out(:,1),'r');
+    plot(t_out, u_ol_ref_out(:,1),'r--');
+    plot(t_out, u_ol_out(:,2),'g');
+    plot(t_out, u_ol_ref_out(:,2),'g--');
+    plot(t_out, u_ol_out(:,3),'b');
+    plot(t_out, u_ol_ref_out(:,3),'b--');
+    plot(t_out, u_ol_out(:,4),'c');
+
+    legend('N_z', 'N_{z,ref}', 'p_s', 'p_{s,ref}', 'N_{yr}',...
+        'N_{yr,ref}', 'Throttle',...
+        'location', 'NorthWest')
 
 else
     disp('No Data from simulation run?');
